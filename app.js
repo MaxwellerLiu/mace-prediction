@@ -208,18 +208,39 @@ function updateRiskDisplay(riskPct) {
     ).join('');
 }
 
-// Draw feature chart
+// Draw feature chart with all 8 features
 function drawFeatureChart() {
     const ctx = document.getElementById('featureChart').getContext('2d');
+    
+    // All 8 features sorted by absolute importance
+    const features = [
+        { name: 'Glucose', value: 0.084 },
+        { name: 'eGFR', value: 0.065 },
+        { name: 'Hemoglobin', value: 0.014 },
+        { name: 'Age', value: 0.012 },
+        { name: 'WBC', value: 0.009 },
+        { name: 'RDW', value: 0.004 },
+        { name: 'BMI', value: 0.003 },
+        { name: 'Sex', value: -0.002 }
+    ];
+    
+    // Color coding
+    const colors = features.map(f => {
+        if (f.value >= 0.05) return '#ef4444';  // High - red
+        if (f.value >= 0.01) return '#3b82f6';  // Medium - blue
+        if (f.value > 0) return '#6b7280';      // Low - gray
+        return '#d1d5db';                       // Negative - light gray
+    });
     
     new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: featureImportance.map(f => f.feature),
+            labels: features.map(f => f.name),
             datasets: [{
-                data: featureImportance.map(f => f.importance),
-                backgroundColor: ['#ef4444', '#ef4444', '#3b82f6', '#3b82f6', '#9ca3af', '#9ca3af', '#9ca3af', '#d1d5db'],
-                borderRadius: 3
+                data: features.map(f => f.value),
+                backgroundColor: colors,
+                borderRadius: 4,
+                barThickness: 14
             }]
         },
         options: {
@@ -228,8 +249,16 @@ function drawFeatureChart() {
             indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: {
-                x: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+                x: {
+                    min: -0.02,
+                    max: 0.10,
+                    grid: { display: true, color: '#f3f4f6', drawBorder: false },
+                    ticks: { font: { size: 10 }, color: '#6b7280' }
+                },
+                y: {
+                    grid: { display: false, drawBorder: false },
+                    ticks: { font: { size: 11 }, color: '#374151' }
+                }
             }
         }
     });
