@@ -31,22 +31,22 @@ body {
 .header {
     background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     color: white;
-    padding: 16px 24px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.header h1 { font-size: 1.3rem; font-weight: 600; }
-.header-meta { font-size: 0.85rem; opacity: 0.9; }
+.header h1 { font-size: 1.1rem; font-weight: 600; }
+.header-meta { font-size: 0.8rem; opacity: 0.9; }
 
 /* Main */
-.main { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
+.main { max-width: 1200px; margin: 0 auto; padding: 16px 20px; }
 
 .grid {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
+    grid-template-columns: 280px 1fr;
+    gap: 16px;
 }
 
 /* Cards */
@@ -136,8 +136,8 @@ body {
 /* Results Grid */
 .results-grid {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 20px;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
 }
 
 /* Gauge */
