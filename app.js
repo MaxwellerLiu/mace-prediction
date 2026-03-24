@@ -258,11 +258,15 @@ function drawFeatureChart() {
                 y: {
                     grid: { display: false, drawBorder: false },
                     ticks: { 
-                        font: { size: 13 }, 
+                        font: { size: 12, weight: '500' }, 
                         color: '#374151',
                         autoSkip: false,
                         maxRotation: 0,
-                        padding: 10
+                        minRotation: 0,
+                        padding: 8
+                    },
+                    afterFit: function(scale) {
+                        scale.width = 80;
                     }
                 }
             },
