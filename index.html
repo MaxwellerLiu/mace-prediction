@@ -3,301 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MACE Prediction System - 90-Day Post-PCI Risk Assessment</title>
+    <title>MACE Risk Prediction - 90-Day Post-PCI</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 </head>
 <body>
-    <header class="header">
-        <div class="container">
-            <h1>🏥 MACE Risk Prediction System</h1>
-            <p class="subtitle">90-Day Major Adverse Cardiac Events Risk Assessment After PCI</p>
-            <nav class="nav">
-                <button class="nav-btn active" data-section="predictor">Risk Prediction</button>
-                <button class="nav-btn" data-section="models">Model Comparison</button>
-                <button class="nav-btn" data-section="thresholds">Threshold Analysis</button>
-                <button class="nav-btn" data-section="about">About</button>
-            </nav>
-        </div>
-    </header>
-
-    <main class="main">
-        <!-- Risk Prediction Section -->
-        <section id="predictor" class="section active">
-            <div class="container">
-                <div class="two-column">
-                    <div class="card input-card">
-                        <h2>📝 Patient Information</h2>
-                        <form id="prediction-form">
-                            <div class="form-group">
-                                <label for="age">Age (years)</label>
-                                <input type="number" id="age" name="age" min="18" max="120" required placeholder="e.g., 65">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="sex">Sex</label>
-                                <select id="sex" name="sex" required>
-                                    <option value="">Select</option>
-                                    <option value="0">Female</option>
-                                    <option value="1">Male</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="bmi">BMI (kg/m²)</label>
-                                <input type="number" id="bmi" name="bmi" step="0.1" min="10" max="60" required placeholder="e.g., 24.5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="creatinine">Creatinine (mg/dL)</label>
-                                <input type="number" id="creatinine" name="creatinine" step="0.01" min="0.1" max="20" required placeholder="e.g., 1.2">
-                                <small class="help-text">eGFR will be calculated automatically using CKD-EPI 2021 equation</small>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="glucose">Glucose (mmol/L)</label>
-                                <input type="number" id="glucose" name="glucose" step="0.1" min="2" max="50" required placeholder="e.g., 7.5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="hb">Hemoglobin (Hb, g/dL)</label>
-                                <input type="number" id="hb" name="hb" step="0.1" min="5" max="20" required placeholder="e.g., 12.5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="rdw">Red Cell Distribution Width (RDW, %)</label>
-                                <input type="number" id="rdw" name="rdw" step="0.1" min="10" max="25" required placeholder="e.g., 14.5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="wbc">White Blood Cell Count (WBC, ×10⁹/L)</label>
-                                <input type="number" id="wbc" name="wbc" step="0.1" min="1" max="50" required placeholder="e.g., 8.5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="model-select">Prediction Model <span class="badge-recommended">★ Final Selected</span></label>
-                                <select id="model-select" name="model" required>
-                                    <option value="NB" selected>Naive Bayes (NB) - Optimal Model</option>
-                                    <option value="LightGBM">LightGBM</option>
-                                    <option value="XGBoost">XGBoost</option>
-                                    <option value="RF">Random Forest</option>
-                                    <option value="GBDT">Gradient Boosting</option>
-                                    <option value="LR">Logistic Regression</option>
-                                    <option value="SVM">SVM</option>
-                                    <option value="MLP">Neural Network</option>
-                                </select>
-                                <small class="help-text">NB selected as optimal model after comparing 15 algorithms (5-fold CV + hyperparameter tuning + external validation). Ext AUROC=0.755, Gap=+0.086</small>
-                            </div>
-
-                            <div class="form-group threshold-group">
-                                <label>Threshold Strategy <span class="badge-recommended">Recommended: 0.075</span></label>
-                                <div class="threshold-options">
-                                    <label class="radio-label">
-                                        <input type="radio" name="threshold" value="recommended" checked>
-                                        <span>★ Recommended (0.075) - Test: Sens=0.865</span>
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="threshold" value="youden">
-                                        <span>Youden Index (0.053) - Balanced</span>
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="threshold" value="sensitivity">
-                                        <span>High Sensitivity (0.074) - Screening</span>
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="threshold" value="specificity">
-                                        <span>High Specificity (0.50) - Diagnosis</span>
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="threshold" value="cost">
-                                        <span>Cost-sensitive (0.014) - 10:1</span>
-                                    </label>
-                                </div>
-                                <small class="help-text">Recommended threshold 0.075 based on external validation: Sens=0.703, NPV=0.952</small>
-                            </div>
-                            
-                            <button type="submit" class="btn-primary">🔍 Predict MACE Risk</button>
-                        </form>
+    <div class="app-container">
+        <!-- Sidebar: Patient Information -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📝 Patient Information</h2>
+                <p class="sidebar-subtitle">First recorded after admission</p>
+            </div>
+            
+            <form id="prediction-form" class="patient-form">
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Creatinine</span>
+                        <span class="label-unit">(mg/dL or μmol/L)</span>
+                    </label>
+                    <input type="number" id="creatinine" step="0.01" min="0.1" max="20" value="1.20" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Age</span>
+                        <span class="label-unit">(years)</span>
+                    </label>
+                    <input type="number" id="age" min="18" max="120" value="65" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Sex</span>
+                    </label>
+                    <select id="sex" required>
+                        <option value="0" selected>Female</option>
+                        <option value="1">Male</option>
+                    </select>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">BMI</span>
+                        <span class="label-unit">(kg/m²)</span>
+                    </label>
+                    <input type="number" id="bmi" step="0.1" min="10" max="60" value="24.50" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Glucose</span>
+                        <span class="label-unit">(mg/dL)</span>
+                    </label>
+                    <input type="number" id="glucose" step="0.1" min="2" max="50" value="136.20" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Hemoglobin</span>
+                        <span class="label-unit">(g/dL or g/L)</span>
+                    </label>
+                    <input type="number" id="hb" step="0.1" min="5" max="20" value="12.50" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">RDW</span>
+                        <span class="label-unit">(%)</span>
+                    </label>
+                    <input type="number" id="rdw" step="0.1" min="10" max="25" value="13.60" required>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">WBC</span>
+                        <span class="label-unit">(×10⁹/L)</span>
+                    </label>
+                    <input type="number" id="wbc" step="0.1" min="1" max="50" value="11.20" required>
+                </div>
+                
+                <div class="egfr-display">
+                    <span class="egfr-icon">📊</span>
+                    <span class="egfr-text">Calculated eGFR:</span>
+                    <span id="egfr-value" class="egfr-number">--</span>
+                    <span class="egfr-unit">mL/min/1.73m²</span>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Prediction Model</span>
+                        <span class="badge-new">★ Best</span>
+                    </label>
+                    <select id="model-select">
+                        <option value="NB" selected>Naive Bayes (NB)</option>
+                        <option value="LightGBM">LightGBM</option>
+                        <option value="XGBoost">XGBoost</option>
+                        <option value="RF">Random Forest</option>
+                        <option value="SVM">SVM</option>
+                        <option value="MLP">MLP</option>
+                    </select>
+                </div>
+                
+                <div class="form-section">
+                    <label class="form-label">
+                        <span class="label-text">Threshold Strategy</span>
+                    </label>
+                    <select id="threshold-select">
+                        <option value="recommended" selected>★ Recommended (0.075)</option>
+                        <option value="youden">Youden Index (0.053)</option>
+                        <option value="sensitivity">High Sensitivity (0.074)</option>
+                        <option value="specificity">High Specificity (0.50)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="predict-btn">
+                    <span class="btn-icon">🔮</span>
+                    <span class="btn-text">Predict MACE Risk</span>
+                </button>
+                
+                <button type="button" class="reset-btn" onclick="resetForm()">
+                    <span class="btn-icon">🔄</span>
+                    <span>Reset</span>
+                </button>
+            </form>
+        </aside>
+        
+        <!-- Main Content: Results -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>MACE Risk Prediction</h1>
+                <p class="model-info">90-Day MACE After PCI in STEMI Patients (<span id="current-model">NB</span> Model)</p>
+            </div>
+            
+            <!-- Top Row: Risk Assessment + Clinical Recommendations -->
+            <div class="top-row">
+                <!-- Risk Assessment Card -->
+                <div class="result-card risk-card">
+                    <div class="card-header">
+                        <span class="header-icon">🎯</span>
+                        <h3>Risk Assessment</h3>
                     </div>
                     
-                    <div class="card result-card">
-                        <h2>📊 Prediction Result</h2>
-                        <div id="result-container">
-                            <div class="placeholder">
-                                <p>Please enter patient information and click "Predict MACE Risk"</p>
-                            </div>
+                    <div class="risk-status" id="risk-status">
+                        <div class="status-badge low">
+                            <span class="status-icon">✅</span>
+                            <span id="risk-level-text">Low Risk</span>
                         </div>
+                        <div class="risk-percentage" id="risk-percentage">12.4%</div>
+                    </div>
+                    
+                    <p class="risk-description" id="risk-description">Standard post-PCI care appropriate</p>
+                    
+                    <div class="threshold-info">
+                        <span>Threshold: <span id="threshold-display">0.075</span></span>
+                        <span class="dot">•</span>
+                        <span>90-Day MACE probability</span>
+                    </dive
+                </div>
+                
+                <!-- Clinical Recommendations Card -->
+                <div class="result-card recommendations-card">
+                    <div class="card-header">
+                        <span class="header-icon">📋</span>
+                        <h3>Clinical Recommendations</h3>
+                    </div>
+                    
+                    <ul class="recommendation-list" id="recommendation-list">
+                        <li>
+                            <span class="rec-icon">🏥</span>
+                            <span>Standard post-PCI discharge protocol</span>
+                        </li>
+                        <li>
+                            <span class="rec-icon">📅</span>
+                            <span>Routine follow-up (at 4 weeks)</span>
+                        </li>
+                        <li>
+                            <span class="rec-icon">💊</span>
+                            <span>Continue prescribed medications</span>
+                        </li>
+                        <li>
+                            <span class="rec-icon">🥗</span>
+                            <span>Lifestyle counseling</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Gauge Chart -->
+            <div class="gauge-section">
+                <h3 class="section-title">90-Day MACE Risk</h3>
+                <div class="gauge-container">
+                    <canvas id="riskGauge"></canvas>
+                    <div class="gauge-value" id="gauge-value">12.4%</div>
+                </div>
+            </div>
+            
+            <!-- Model Performance -->
+            <div class="performance-section">
+                <div class="card-header">
+                    <span class="header-icon">📊</span>
+                    <h3>Model Performance (External Validation)</h3>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">AUROC</div>
+                        <div class="metric-value" id="metric-auroc">0.755</div>
+                        <div class="metric-ci">(0.670-0.833)</div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Sensitivity</div>
+                        <div class="metric-value" id="metric-sensitivity">70.3%</div>
+                        <div class="metric-ci">at threshold 0.075</div>
+                    </div>
+                    
+                    <div class="metric-card highlight">
+                        <div class="metric-label">NPV</div>
+                        <div class="metric-value" id="metric-npv">95.2%</div>
+                        <div class="metric-ci">Rule-out confidence</div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Model Comparison Section -->
-        <section id="models" class="section">
-            <div class="container">
-                <h2>🔬 Model Performance Comparison</h2>
-                <p class="section-desc">Comparison of 15 machine learning algorithms. NB selected as optimal model based on External AUROC and generalization gap.</p>
-                
-                <div class="chart-grid">
-                    <div class="chart-card">
-                        <h3>AUROC Comparison (Testing Set)</h3>
-                        <canvas id="auroc-chart-test"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>AUROC Comparison (External Validation)</h3>
-                        <canvas id="auroc-chart-ext"></canvas>
-                    </div>
-                    <div class="chart-card full-width">
-                        <h3>Test vs External AUROC Scatter Plot</h3>
-                        <canvas id="scatter-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>Model Performance Metrics</h3>
-                        <canvas id="metrics-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>Generalization Gap (Test - External)</h3>
-                        <canvas id="gap-chart"></canvas>
-                    </div>
+            
+            <!-- Feature Contributions -->
+            <div class="feature-section">
+                <div class="card-header">
+                    <span class="header-icon">🔍</span>
+                    <h3>Feature Contributions</h3>
                 </div>
                 
-                <div class="card table-card">
-                    <h3>📋 Detailed Performance Table</h3>
-                    <div class="table-container">
-                        <table id="model-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Model</th>
-                                    <th>Test AUROC</th>
-                                    <th>External AUROC</th>
-                                    <th>Gap</th>
-                                    <th>Accuracy</th>
-                                    <th>Sensitivity</th>
-                                    <th>Specificity</th>
-                                    <th>F1</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                <p class="feature-subtitle">Based on permutation importance from external validation</p>
+                
+                <div class="feature-chart-container">
+                    <canvas id="featureChart"></canvas>
                 </div>
             </div>
-        </section>
-
-        <!-- Threshold Analysis Section -->
-        <section id="thresholds" class="section">
-            <div class="container">
-                <h2>⚖️ Threshold Strategy Analysis</h2>
-                <p class="section-desc">Different threshold strategies for clinical decision-making. Recommended: 0.075</p>
-                
-                <div class="chart-grid">
-                    <div class="chart-card">
-                        <h3>Sensitivity vs Specificity Trade-off</h3>
-                        <canvas id="threshold-tradeoff-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>Metrics at Different Thresholds</h3>
-                        <canvas id="threshold-metrics-chart"></canvas>
-                    </div>
-                    <div class="chart-card full-width">
-                        <h3>Decision Curve Analysis (DCA)</h3>
-                        <canvas id="dca-chart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="card table-card">
-                    <h3>📋 Threshold Strategy Comparison</h3>
-                    <div class="table-container">
-                        <table id="threshold-table" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Strategy</th>
-                                    <th>Threshold</th>
-                                    <th>Sensitivity</th>
-                                    <th>Specificity</th>
-                                    <th>PPV</th>
-                                    <th>NPV</th>
-                                    <th>F1</th>
-                                    <th>Scenario</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- About Section -->
-        <section id="about" class="section">
-            <div class="container">
-                <h2>📖 About This Project</h2>
-                
-                <div class="about-grid">
-                    <div class="card about-card">
-                        <h3>🎯 Research Objective</h3>
-                        <p>This project develops a clinical decision support system for predicting 90-day Major Adverse Cardiac Events (MACE) risk in patients after Percutaneous Coronary Intervention (PCI).</p>
-                        <p>By analyzing 8 routine clinical indicators, the system provides real-time risk assessment to assist clinical decision-making.</p>
-                    </div>
-                    
-                    <div class="card about-card">
-                        <h3>📊 Study Design</h3>
-                        <ul>
-                            <li><strong>Training Set:</strong> 799 patients (MACE+ 85, 10.6%)</li>
-                            <li><strong>Testing Set:</strong> 343 patients (MACE+ 37, 10.8%)</li>
-                            <li><strong>External Validation:</strong> 338 patients (MACE+ 37, 10.9%)</li>
-                            <li><strong>Features:</strong> 8 clinical variables (Age, Sex, BMI, eGFR, Glucose, Hb, RDW, WBC)</li>
-                            <li><strong>Methods:</strong> 5-fold cross-validation, hyperparameter tuning, SMOTE, threshold optimization</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="card about-card">
-                        <h3>🏆 Key Findings</h3>
-                        <ul>
-                            <li><strong>Optimal Model:</strong> Naive Bayes (NB)</li>
-                            <li><strong>Selection Criteria:</strong> Highest External AUROC + Smallest Generalization Gap</li>
-                            <li><strong>Test AUROC:</strong> 0.841 (0.778-0.899)</li>
-                            <li><strong>External AUROC:</strong> 0.755 (0.670-0.833)</li>
-                            <li><strong>Recommended Threshold:</strong> 0.075</li>
-                            <li><strong>Key Predictors:</strong> Glucose, eGFR, WBC, BMI, Hb</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="card about-card">
-                        <h3>⚕️ Clinical Application</h3>
-                        <p><strong>Risk Stratification:</strong></p>
-                        <ul>
-                            <li>🔴 <strong>High Risk (≥0.075):</strong> Enhanced monitoring and aggressive intervention recommended</li>
-                            <li>🟡 <strong>Moderate Risk (0.05-0.075):</strong> Standard care with close follow-up</li>
-                            <li>🟢 <strong>Low Risk (&lt;0.05):</strong> Routine management</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="card about-card">
-                        <h3>📚 Citation</h3>
-                        <p>If you use this tool in your research, please cite:</p>
-                        <blockquote>
-                            Machine Learning-Based Prediction of 90-Day MACE After PCI: Development and External Validation Using 8 Clinical Variables.
-                        </blockquote>
-                    </div>
-                    
-                    <div class="card about-card">
-                        <h3>⚠️ Disclaimer</h3>
-                        <p>This tool is for <strong>research and educational purposes only</strong>. It should not replace clinical judgment. Always consult qualified healthcare professionals for medical decisions.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>© 2024 MACE Prediction System | Based on Machine Learning Research | <span class="version">v1.0.0</span></p>
-        </div>
-    </footer>
+        </main>
+    </div>
 
     <script src="app.js"></script>
 </body>
