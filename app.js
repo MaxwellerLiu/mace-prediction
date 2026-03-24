@@ -1,9 +1,18 @@
-// MACE Prediction System - Streamlit Style
+// MACE Prediction System - Professional Medical Interface
 // Real experimental data: NB model, threshold 0.075
 
 // Real model performance data
 const modelPerformance = {
-    'NB': { auroc: 0.755, sensitivity: 0.703, specificity: 0.721, npv: 0.952, threshold: 0.075 },
+    'NB': { 
+        auroc: 0.755, 
+        sensitivity: 0.703, 
+        specificity: 0.721, 
+        npv: 0.952, 
+        threshold: 0.075,
+        testAuroc: 0.841,
+        testAurocCI: '(0.778-0.899)',
+        extAurocCI: '(0.670-0.833)'
+    },
     'LightGBM': { auroc: 0.698, sensitivity: 0.757, specificity: 0.452, npv: 0.938, threshold: 0.132 },
     'XGBoost': { auroc: 0.673, sensitivity: 0.676, specificity: 0.565, npv: 0.934, threshold: 0.335 },
     'RF': { auroc: 0.690, sensitivity: 0.730, specificity: 0.551, npv: 0.943, threshold: 0.234 },
@@ -13,23 +22,15 @@ const modelPerformance = {
 
 // Feature importance from real data
 const featureImportance = [
-    { feature: 'Glucose', importance: 0.084, color: '#e74c3c' },
-    { feature: 'eGFR', importance: 0.065, color: '#e74c3c' },
-    { feature: 'Hb', importance: 0.014, color: '#3498db' },
-    { feature: 'Age', importance: 0.012, color: '#3498db' },
-    { feature: 'WBC', importance: 0.009, color: '#95a5a6' },
-    { feature: 'RDW', importance: 0.004, color: '#95a5a6' },
-    { feature: 'BMI', importance: 0.003, color: '#95a5a6' },
-    { feature: 'Sex', importance: -0.002, color: '#bdc3c7' }
+    { feature: 'Glucose', importance: 0.084 },
+    { feature: 'eGFR', importance: 0.065 },
+    { feature: 'Hemoglobin', importance: 0.014 },
+    { feature: 'Age', importance: 0.012 },
+    { feature: 'WBC', importance: 0.009 },
+    { feature: 'RDW', importance: 0.004 },
+    { feature: 'BMI', importance: 0.003 },
+    { feature: 'Sex', importance: -0.002 }
 ];
-
-// Threshold strategies
-const thresholdStrategies = {
-    'recommended': { value: 0.075, label: 'Recommended' },
-    'youden': { value: 0.053, label: 'Youden Index' },
-    'sensitivity': { value: 0.074, label: 'High Sensitivity' },
-    'specificity': { value: 0.50, label: 'High Specificity' }
-};
 
 // Calculate eGFR using CKD-EPI 2021
 function calculateEGFR(creatinine, age, sex) {
@@ -48,128 +49,167 @@ function calculateEGFR(creatinine, age, sex) {
 
 // Predict risk using NB model simulation
 function predictRisk(data) {
-    const model = data.model || 'NB';
     const egfr = calculateEGFR(data.creatinine, data.age, data.sex);
     
-    // Calculate base risk score based on clinical knowledge
-    let riskScore = 0.10; // Base risk
+    // Calculate risk score
+    let riskScore = 0.10;
     
-    // Age effect
     if (data.age > 70) riskScore += 0.15;
     else if (data.age > 60) riskScore += 0.08;
     
-    // Sex effect (males higher risk)
     if (data.sex === '1') riskScore += 0.05;
-    
-    // BMI effect (U-shaped)
     if (data.bmi < 20 || data.bmi > 28) riskScore += 0.08;
-    
-    // eGFR effect
     if (egfr < 60) riskScore += 0.18;
     else if (egfr < 90) riskScore += 0.05;
-    
-    // Glucose effect
     if (data.glucose > 7.8) riskScore += 0.10;
-    
-    // Hemoglobin effect
     if (data.hb < 11) riskScore += 0.12;
-    
-    // RDW effect
     if (data.rdw > 14.5) riskScore += 0.08;
-    
-    // WBC effect
     if (data.wbc > 10) riskScore += 0.06;
     
-    // Apply NB model smoothing
+    // NB smoothing
     let probability = 1 / (1 + Math.exp(-(riskScore - 0.5) * 1.5));
-    
-    // Clip probability
     probability = Math.max(0.02, Math.min(0.95, probability));
     
-    return {
-        probability: probability,
-        egfr: egfr,
-        model: model
-    };
+    return { probability, egfr };
 }
 
-// Get clinical recommendations based on risk
-function getRecommendations(riskPct) {
+// Get risk level and recommendations
+function getRiskInfo(riskPct) {
     if (riskPct < 7.5) {
-        return [
-            { icon: '🏥', text: 'Standard post-PCI discharge protocol' },
-            { icon: '📅', text: 'Routine follow-up (at 4 weeks)' },
-            { icon: '💊', text: 'Continue prescribed medications' },
-            { icon: '🥗', text: 'Lifestyle counseling' }
-        ];
+        return {
+            level: 'low',
+            badge: '✓ Low Risk',
+            color: '#10b981',
+            interpretation: 'Patient has low MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.',
+            recommendations: [
+                { icon: '🏥', text: 'Standard post-PCI discharge protocol' },
+                { icon: '📅', text: 'Routine follow-up at 4 weeks' },
+                { icon: '💊', text: 'Continue prescribed medications' }
+            ]
+        };
     } else if (riskPct < 15) {
-        return [
-            { icon: '⚠️', text: 'Moderate risk - Enhanced monitoring' },
-            { icon: '📅', text: 'Follow-up at 2, 4, and 8 weeks' },
-            { icon: '💊', text: 'Consider intensifying antiplatelet therapy' },
-            { icon: '📊', text: 'Monitor lipids and glucose closely' }
-        ];
+        return {
+            level: 'moderate',
+            badge: '⚠ Moderate Risk',
+            color: '#f59e0b',
+            interpretation: 'Patient has moderate MACE risk. Enhanced monitoring is recommended with more frequent follow-ups.',
+            recommendations: [
+                { icon: '⚠️', text: 'Enhanced monitoring recommended' },
+                { icon: '📅', text: 'Follow-up at 2, 4, and 8 weeks' },
+                { icon: '💊', text: 'Consider intensifying antiplatelet therapy' }
+            ]
+        };
     } else {
-        return [
-            { icon: '🚨', text: 'HIGH RISK - Intensive management required' },
-            { icon: '📅', text: 'Follow-up every 1-2 weeks' },
-            { icon: '💊', text: 'Intensify antiplatelet and statin therapy' },
-            { icon: '❤️', text: 'Consider cardiac rehabilitation referral' }
-        ];
+        return {
+            level: 'high',
+            badge: '🚨 High Risk',
+            color: '#ef4444',
+            interpretation: 'Patient has HIGH MACE risk. Intensive management and close monitoring are required.',
+            recommendations: [
+                { icon: '🚨', text: 'Intensive management required' },
+                { icon: '📅', text: 'Follow-up every 1-2 weeks' },
+                { icon: '❤️', text: 'Consider cardiac rehabilitation referral' }
+            ]
+        };
     }
 }
 
-// Update eGFR display
-function updateEGFR() {
-    const creatinine = document.getElementById('creatinine').value;
-    const age = document.getElementById('age').value;
-    const sex = document.getElementById('sex').value;
-    
-    if (creatinine && age && sex) {
-        const egfr = calculateEGFR(parseFloat(creatinine), parseInt(age), sex);
-        document.getElementById('egfr-value').textContent = egfr.toFixed(1);
-    }
-}
-
-// Draw semi-circular gauge chart
+// Draw professional gauge with needle
 function drawGauge(probability) {
-    const ctx = document.getElementById('riskGauge').getContext('2d');
+    const canvas = document.getElementById('riskGauge');
+    const ctx = canvas.getContext('2d');
     const percentage = Math.round(probability * 100);
     
-    if (window.gaugeChart) {
-        window.gaugeChart.destroy();
+    // Set canvas size
+    canvas.width = 280;
+    canvas.height = 160;
+    
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height - 20;
+    const radius = 110;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background arc (gray)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, 0);
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Draw colored segments
+    // Low (0-30%): Green
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + (Math.PI * 0.3));
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = '#10b981';
+    ctx.stroke();
+    
+    // Moderate (30-60%): Yellow
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI + (Math.PI * 0.3), Math.PI + (Math.PI * 0.6));
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = '#f59e0b';
+    ctx.stroke();
+    
+    // High (60-100%): Red
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI + (Math.PI * 0.6), 0);
+    ctx.lineWidth = 20;
+    ctx.strokeStyle = '#ef4444';
+    ctx.stroke();
+    
+    // Draw ticks
+    for (let i = 0; i <= 10; i++) {
+        const angle = Math.PI + (Math.PI * i / 10);
+        const innerR = radius - 25;
+        const outerR = radius - 15;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
+        ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#9ca3af';
+        ctx.stroke();
+        
+        // Labels
+        if (i % 2 === 0) {
+            const labelR = radius - 40;
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#6b7280';
+            ctx.textAlign = 'center';
+            ctx.fillText((i * 10) + '%', centerX + Math.cos(angle) * labelR, centerY + Math.sin(angle) * labelR + 4);
+        }
     }
     
-    // Color based on risk
-    let color = '#28a745'; // Low - green
-    if (percentage >= 15) color = '#ffc107'; // Moderate - yellow
-    if (percentage >= 30) color = '#dc3545'; // High - red
+    // Calculate needle angle (0-100% maps to PI to 0)
+    const needleAngle = Math.PI + (Math.PI * (1 - probability));
+    const needleLength = radius - 10;
     
-    window.gaugeChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Risk', 'Remaining'],
-            datasets: [{
-                data: [percentage, 100 - percentage],
-                backgroundColor: [color, '#e9ecef'],
-                borderWidth: 0,
-                circumference: 180,
-                rotation: 270
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: false }
-            }
-        }
-    });
+    // Draw needle
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+        centerX + Math.cos(needleAngle) * needleLength,
+        centerY + Math.sin(needleAngle) * needleLength
+    );
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineCap = 'round';
+    ctx.stroke();
     
-    document.getElementById('gauge-value').textContent = percentage + '%';
-    document.getElementById('gauge-value').style.color = color;
+    // Draw needle center
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#1f2937';
+    ctx.fill();
+    
+    // Update display
+    const gaugeNumber = document.getElementById('gauge-number');
+    gaugeNumber.textContent = percentage + '%';
+    gaugeNumber.className = 'gauge-number ' + (percentage < 7.5 ? 'low' : percentage < 15 ? 'moderate' : 'high');
 }
 
 // Draw feature importance chart
@@ -187,7 +227,10 @@ function drawFeatureChart() {
             datasets: [{
                 label: 'Permutation Importance',
                 data: featureImportance.map(f => f.importance),
-                backgroundColor: featureImportance.map(f => f.color),
+                backgroundColor: [
+                    '#ef4444', '#ef4444', '#3b82f6', '#3b82f6',
+                    '#9ca3af', '#9ca3af', '#9ca3af', '#d1d5db'
+                ],
                 borderRadius: 4
             }]
         },
@@ -201,61 +244,50 @@ function drawFeatureChart() {
             scales: {
                 x: {
                     beginAtZero: true,
-                    grid: { display: false }
+                    grid: { color: '#f3f4f6' },
+                    ticks: { font: { size: 11 } }
                 },
                 y: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: { font: { size: 12 } }
                 }
             }
         }
     });
 }
 
-// Update risk card styling
-function updateRiskCard(riskPct) {
-    const riskCard = document.getElementById('risk-status').parentElement;
-    const riskLevelText = document.getElementById('risk-level-text');
-    const riskDescription = document.getElementById('risk-description');
+// Update eGFR display
+function updateEGFR() {
+    const creatinine = parseFloat(document.getElementById('creatinine').value) || 0;
+    const age = parseInt(document.getElementById('age').value) || 0;
+    const sex = document.getElementById('sex').value;
     
-    riskCard.classList.remove('high-risk', 'moderate-risk');
-    
-    if (riskPct < 7.5) {
-        riskLevelText.textContent = 'Low Risk';
-        riskLevelText.parentElement.className = 'status-badge low';
-        riskDescription.textContent = 'Standard post-PCI care appropriate';
-    } else if (riskPct < 15) {
-        riskCard.classList.add('moderate-risk');
-        riskLevelText.textContent = 'Moderate Risk';
-        riskLevelText.parentElement.className = 'status-badge moderate';
-        riskDescription.textContent = 'Enhanced monitoring recommended';
-    } else {
-        riskCard.classList.add('high-risk');
-        riskLevelText.textContent = 'High Risk';
-        riskLevelText.parentElement.className = 'status-badge high';
-        riskDescription.textContent = 'Intensive management required';
+    if (creatinine > 0 && age > 0) {
+        const egfr = calculateEGFR(creatinine, age, sex);
+        document.getElementById('egfr-value').textContent = egfr.toFixed(1);
     }
 }
 
-// Update recommendations
-function updateRecommendations(riskPct) {
-    const recommendations = getRecommendations(riskPct);
-    const listEl = document.getElementById('recommendation-list');
+// Update risk display
+function updateRiskDisplay(riskPct) {
+    const info = getRiskInfo(riskPct);
     
-    listEl.innerHTML = recommendations.map(rec => `
-        <li>
+    // Update badge
+    const badge = document.getElementById('risk-badge');
+    badge.className = 'risk-badge ' + info.level;
+    badge.innerHTML = `<span>${info.badge.split(' ')[0]}</span><span>${info.badge.split(' ').slice(1).join(' ')}</span>`;
+    
+    // Update interpretation
+    document.getElementById('risk-interpretation').textContent = info.interpretation;
+    
+    // Update recommendations
+    const recList = document.getElementById('recommendations-list');
+    recList.innerHTML = info.recommendations.map(rec => `
+        <div class="recommendation-item">
             <span class="rec-icon">${rec.icon}</span>
-            <span>${rec.text}</span>
-        </li>
+            <span class="rec-text">${rec.text}</span>
+        </div>
     `).join('');
-}
-
-// Update model performance metrics
-function updateMetrics(model) {
-    const perf = modelPerformance[model] || modelPerformance['NB'];
-    
-    document.getElementById('metric-auroc').textContent = perf.auroc.toFixed(3);
-    document.getElementById('metric-sensitivity').textContent = (perf.sensitivity * 100).toFixed(1) + '%';
-    document.getElementById('metric-npv').textContent = (perf.npv * 100).toFixed(1) + '%';
 }
 
 // Reset form
@@ -263,48 +295,47 @@ function resetForm() {
     document.getElementById('prediction-form').reset();
     document.getElementById('egfr-value').textContent = '--';
     
-    // Reset display
-    document.getElementById('risk-percentage').textContent = '12.4%';
-    document.getElementById('gauge-value').textContent = '12.4%';
+    // Reset to default values
+    document.getElementById('age').value = '65';
+    document.getElementById('sex').value = '1';
+    document.getElementById('bmi').value = '24.5';
+    document.getElementById('creatinine').value = '1.20';
+    document.getElementById('glucose').value = '136.2';
+    document.getElementById('hb').value = '12.5';
+    document.getElementById('rdw').value = '13.6';
+    document.getElementById('wbc').value = '11.2';
     
-    // Reset risk card
-    const riskCard = document.getElementById('risk-status').parentElement;
-    riskCard.classList.remove('high-risk', 'moderate-risk');
-    document.getElementById('risk-level-text').textContent = 'Low Risk';
-    document.getElementById('risk-level-text').parentElement.className = 'status-badge low';
-    document.getElementById('risk-description').textContent = 'Standard post-PCI care appropriate';
-    
-    // Reset recommendations
-    updateRecommendations(12.4);
-    
-    // Reset gauge
+    updateEGFR();
     drawGauge(0.124);
+    updateRiskDisplay(12.4);
 }
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts
+    // Initialize
+    updateEGFR();
     drawGauge(0.124);
     drawFeatureChart();
-    
-    // Initial eGFR calculation
-    updateEGFR();
     
     // Real-time eGFR update
     ['creatinine', 'age', 'sex'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateEGFR);
     });
     
-    // Model change updates metrics
+    // Model change
     document.getElementById('model-select').addEventListener('change', function() {
-        document.getElementById('current-model').textContent = this.value;
-        updateMetrics(this.value);
+        document.getElementById('display-model').textContent = this.value;
     });
     
-    // Threshold change updates display
+    // Threshold change
     document.getElementById('threshold-select').addEventListener('change', function() {
-        const threshold = thresholdStrategies[this.value].value;
-        document.getElementById('threshold-display').textContent = threshold;
+        const thresholds = {
+            'recommended': '0.075',
+            'youden': '0.053',
+            'sensitivity': '0.074',
+            'specificity': '0.50'
+        };
+        document.getElementById('display-threshold').textContent = thresholds[this.value];
     });
     
     // Form submission
@@ -312,30 +343,20 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const formData = {
-            creatinine: document.getElementById('creatinine').value,
-            age: document.getElementById('age').value,
+            creatinine: parseFloat(document.getElementById('creatinine').value),
+            age: parseInt(document.getElementById('age').value),
             sex: document.getElementById('sex').value,
-            bmi: document.getElementById('bmi').value,
-            glucose: document.getElementById('glucose').value,
-            hb: document.getElementById('hb').value,
-            rdw: document.getElementById('rdw').value,
-            wbc: document.getElementById('wbc').value,
-            model: document.getElementById('model-select').value,
-            threshold: document.getElementById('threshold-select').value
+            bmi: parseFloat(document.getElementById('bmi').value),
+            glucose: parseFloat(document.getElementById('glucose').value),
+            hb: parseFloat(document.getElementById('hb').value),
+            rdw: parseFloat(document.getElementById('rdw').value),
+            wbc: parseFloat(document.getElementById('wbc').value)
         };
         
         const result = predictRisk(formData);
         const riskPct = Math.round(result.probability * 100);
         
-        // Update displays
-        document.getElementById('risk-percentage').textContent = riskPct + '%';
-        updateRiskCard(riskPct);
-        updateRecommendations(riskPct);
         drawGauge(result.probability);
-        
-        // Scroll to results on mobile
-        if (window.innerWidth < 768) {
-            document.querySelector('.main-content').scrollIntoView({ behavior: 'smooth' });
-        }
+        updateRiskDisplay(riskPct);
     });
 });
