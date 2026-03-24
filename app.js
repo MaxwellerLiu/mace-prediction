@@ -48,9 +48,9 @@ function predictRisk(data) {
     return Math.max(0.02, Math.min(0.95, probability));
 }
 
-// Get risk info
+// Get risk info - match gauge colors: 0-30% green, 30-60% yellow, 60-100% red
 function getRiskInfo(riskPct) {
-    if (riskPct < 7.5) {
+    if (riskPct < 30) {
         return {
             level: 'low',
             text: '✓ Low Risk',
@@ -63,7 +63,7 @@ function getRiskInfo(riskPct) {
                 'Continue prescribed medications'
             ]
         };
-    } else if (riskPct < 15) {
+    } else if (riskPct < 60) {
         return {
             level: 'moderate',
             text: '⚠ Moderate Risk',
@@ -110,24 +110,24 @@ function drawGauge(probability) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Draw three colored segments
-    // Low risk: 0-30% (Green)
+    // Low risk: 0-30% (Green) - 30% of semicircle
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + Math.PI * 0.3);
+    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + Math.PI * 0.30);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#10b981';
     ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // Moderate risk: 30-60% (Yellow)
+    // Moderate risk: 30-60% (Yellow) - 30% of semicircle  
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.3, Math.PI + Math.PI * 0.6);
+    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.30, Math.PI + Math.PI * 0.60);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#f59e0b';
     ctx.stroke();
     
-    // High risk: 60-100% (Red)
+    // High risk: 60-100% (Red) - 40% of semicircle
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.6, 0);
+    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.60, 2 * Math.PI);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#ef4444';
     ctx.stroke();
