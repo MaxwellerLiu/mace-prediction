@@ -45,14 +45,14 @@ function predictRisk(data) {
 
 // Get risk info
 function getRiskInfo(riskPct) {
-    if (riskPct < 30) {
+    if (riskPct < 15) {
         return {
             level: 'low',
             text: '✓ Low Risk',
             interpretation: 'Patient has LOW MACE risk. Standard post-PCI care is appropriate.',
             recommendations: ['Standard post-PCI discharge protocol', 'Routine follow-up at 4 weeks', 'Continue prescribed medications']
         };
-    } else if (riskPct < 60) {
+    } else if (riskPct < 30) {
         return {
             level: 'moderate',
             text: '⚠ Moderate Risk',
@@ -92,23 +92,23 @@ function drawGauge(probability) {
     ctx.strokeStyle = '#e2e8f0';
     ctx.stroke();
     
-    // Green: 0-30%
+    // Green: 0-15%
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + Math.PI * 0.30);
+    ctx.arc(centerX, centerY, radius, Math.PI, Math.PI + Math.PI * 0.15);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#22c55e';
     ctx.stroke();
     
-    // Yellow: 30-60%
+    // Yellow: 15-30%
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.30, Math.PI + Math.PI * 0.60);
+    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.15, Math.PI + Math.PI * 0.30);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#f59e0b';
     ctx.stroke();
     
-    // Red: 60-100%
+    // Red: 30-100%
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.60, 2 * Math.PI);
+    ctx.arc(centerX, centerY, radius, Math.PI + Math.PI * 0.30, 2 * Math.PI);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#ef4444';
     ctx.stroke();

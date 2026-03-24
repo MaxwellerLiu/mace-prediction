@@ -9,7 +9,7 @@
 <body>
     <header class="header">
         <h1>MACE Risk Prediction</h1>
-        <span class="header-meta">90-Day | NB Model | Threshold 0.075</span>
+        <span class="header-meta">90-Day | NB Model | Threshold 15%</span>
     </header>
 
     <div class="main">
@@ -22,7 +22,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Age (years)</label>
-                                <input type="number" id="age" min="18" max="120" value="65" required>
+                                <input type="number" id="age" min="18" max="120" value="68" required>
                             </div>
                             <div class="form-group">
                                 <label>Sex</label>
@@ -36,7 +36,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>BMI (kg/m²)</label>
-                                <input type="number" id="bmi" step="0.1" value="24.5" required>
+                                <input type="number" id="bmi" step="0.1" value="24.6" required>
                             </div>
                             <div class="form-group">
                                 <label>Creatinine (mg/dL)</label>
@@ -47,22 +47,22 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Glucose (mg/dL)</label>
-                                <input type="number" id="glucose" step="0.1" value="136.2" required>
+                                <input type="number" id="glucose" step="0.1" value="138.20" required>
                             </div>
                             <div class="form-group">
                                 <label>Hemoglobin (g/dL)</label>
-                                <input type="number" id="hb" step="0.1" value="12.5" required>
+                                <input type="number" id="hb" step="0.1" value="13.50" required>
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
                                 <label>RDW (%)</label>
-                                <input type="number" id="rdw" step="0.1" value="13.6" required>
+                                <input type="number" id="rdw" step="0.1" value="13.60" required>
                             </div>
                             <div class="form-group">
                                 <label>WBC (×10⁹/L)</label>
-                                <input type="number" id="wbc" step="0.1" value="11.2" required>
+                                <input type="number" id="wbc" step="0.1" value="11.20" required>
                             </div>
                         </div>
                         
@@ -100,7 +100,7 @@
                             <div class="gauge-result">
                                 <div id="gauge-percentage" class="gauge-percentage low">12.4%</div>
                                 <div id="gauge-level" class="gauge-level low">✓ Low Risk</div>
-                                <div class="gauge-threshold">Threshold: 0.075 | NB Model</div>
+                                <div class="gauge-threshold">Threshold: 15% | NB Model</div>
                             </div>
                         </div>
                     </div>
@@ -159,7 +159,7 @@
                 <div class="card" style="grid-column: 1 / -1;">
                     <div class="card-header">📋 Clinical Interpretation</div>
                     <div class="card-body">
-                        <p id="risk-interpretation" class="info-text">Patient has LOW MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.</p>
+                        <p id="risk-interpretation" class="info-text">Patient has LOW MACE risk. Standard post-PCI care is appropriate with routine follow-up.</p>
                         
                         <ul id="recommendation-list" class="rec-list" style="margin-top: 12px;">
                             <li><span>🏥</span><span>Standard post-PCI discharge protocol</span></li>
