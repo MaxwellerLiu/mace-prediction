@@ -1,8 +1,8 @@
-// MACE预测系统 - 主JavaScript文件
+// MACE Prediction System - Main JavaScript File
 
-// 真实实验数据 (来自用户Python代码运行结果)
-// 最佳模型: NB (Naive Bayes)
-// 推荐阈值: 0.075
+// Real experimental data (from user's Python code results)
+// Best Model: NB (Naive Bayes)
+// Recommended Threshold: 0.075
 const modelData = {
     models: [
         { name: 'NB', nameZh: 'Naive Bayes (NB) ★', testAuc: 0.841, extAuc: 0.755, gap: 0.086, accuracy: 0.650, sensitivity: 0.865, specificity: 0.624, f1: 0.348, brier: 0.119, color: '#4363D8' },
@@ -25,21 +25,21 @@ const modelData = {
     recommendedThreshold: 0.075
 };
 
-// 真实阈值策略数据 (推荐阈值 = 0.075)
+// Real threshold strategy data (Recommended Threshold = 0.075)
 const thresholdData = [
-    { strategy: 'Fixed 0.5', threshold: 0.500, sensitivity: 0.57, specificity: 0.88, ppv: 0.36, npv: 0.94, f1: 0.44, scenario: '标准阈值' },
-    { strategy: 'Prevalence', threshold: 0.106, sensitivity: 0.84, specificity: 0.72, ppv: 0.26, npv: 0.97, f1: 0.40, scenario: '基于患病率' },
-    { strategy: 'Youden指数', threshold: 0.053, sensitivity: 0.87, specificity: 0.62, ppv: 0.22, npv: 0.97, f1: 0.35, scenario: '平衡选择' },
-    { strategy: '敏感度≥85%', threshold: 0.074, sensitivity: 0.87, specificity: 0.67, ppv: 0.24, npv: 0.98, f1: 0.38, scenario: '筛查优先' },
-    { strategy: '★ 推荐阈值', threshold: 0.075, sensitivity: 0.87, specificity: 0.67, ppv: 0.24, npv: 0.98, f1: 0.38, scenario: '推荐 (Test: Sens=0.865, Ext: Sens=0.703)' },
-    { strategy: 'NPV≥95%', threshold: 0.405, sensitivity: 0.60, specificity: 0.85, ppv: 0.33, npv: 0.95, f1: 0.42, scenario: '排除诊断' },
-    { strategy: 'Cost 10:1', threshold: 0.014, sensitivity: 0.97, specificity: 0.41, ppv: 0.17, npv: 0.99, f1: 0.28, scenario: '成本敏感' },
-    { strategy: 'F1最优', threshold: 0.340, sensitivity: 0.70, specificity: 0.84, ppv: 0.34, npv: 0.96, f1: 0.46, scenario: 'F1最优化' },
+    { strategy: 'Fixed 0.5', threshold: 0.500, sensitivity: 0.57, specificity: 0.88, ppv: 0.36, npv: 0.94, f1: 0.44, scenario: 'Standard Threshold' },
+    { strategy: 'Prevalence', threshold: 0.106, sensitivity: 0.84, specificity: 0.72, ppv: 0.26, npv: 0.97, f1: 0.40, scenario: 'Prevalence-based' },
+    { strategy: 'Youden Index', threshold: 0.053, sensitivity: 0.87, specificity: 0.62, ppv: 0.22, npv: 0.97, f1: 0.35, scenario: 'Balanced' },
+    { strategy: 'Sensitivity ≥85%', threshold: 0.074, sensitivity: 0.87, specificity: 0.67, ppv: 0.24, npv: 0.98, f1: 0.38, scenario: 'Screening Priority' },
+    { strategy: '★ Recommended', threshold: 0.075, sensitivity: 0.87, specificity: 0.67, ppv: 0.24, npv: 0.98, f1: 0.38, scenario: 'Recommended (Test: Sens=0.865, Ext: Sens=0.703)' },
+    { strategy: 'NPV ≥95%', threshold: 0.405, sensitivity: 0.60, specificity: 0.85, ppv: 0.33, npv: 0.95, f1: 0.42, scenario: 'Rule-out Diagnosis' },
+    { strategy: 'Cost 10:1', threshold: 0.014, sensitivity: 0.97, specificity: 0.41, ppv: 0.17, npv: 0.99, f1: 0.28, scenario: 'Cost-sensitive' },
+    { strategy: 'F1 Optimal', threshold: 0.340, sensitivity: 0.70, specificity: 0.84, ppv: 0.34, npv: 0.96, f1: 0.46, scenario: 'F1 Optimized' },
 ];
 
-// 真实特征重要性 (来自Permutation Importance和SHAP)
-// Test集: Glucose > eGFR > WBC > BMI > Hb > Age > RDW > Sex
-// External集: Glucose > eGFR > Hb > Age > WBC > RDW > BMI > Sex
+// Feature Importance (from Permutation Importance and SHAP)
+// Test Set: Glucose > eGFR > WBC > BMI > Hb > Age > RDW > Sex
+// External Set: Glucose > eGFR > Hb > Age > WBC > RDW > BMI > Sex
 const featureImportance = [
     { feature: 'Glucose', testImp: 0.0597, extImp: 0.0840, shap: 0.065, color: '#e74c3c', rank: 1 },
     { feature: 'eGFR', testImp: 0.0494, extImp: 0.0653, shap: 0.052, color: '#e74c3c', rank: 2 },
@@ -51,9 +51,9 @@ const featureImportance = [
     { feature: 'Sex', testImp: -0.0035, extImp: -0.0019, shap: -0.002, color: '#95a5a6', rank: 8 }
 ];
 
-// 计算eGFR
+// Calculate eGFR
 function calculateEGFR(creatinine, age, sex) {
-    // CKD-EPI 2021方程
+    // CKD-EPI 2021 Equation
     const cr = creatinine;
     const kappa = sex === 0 ? 0.7 : 0.9;
     const alpha = sex === 0 ? -0.241 : -0.302;
@@ -67,80 +67,80 @@ function calculateEGFR(creatinine, age, sex) {
     return Math.max(2, Math.min(200, egfr));
 }
 
-// 模拟预测函数 (根据选择的模型)
+// Simulate prediction function (based on selected model)
 function predictRisk(data) {
     const model = data.model || 'LightGBM';
     
-    // 计算eGFR
+    // Calculate eGFR
     const egfr = calculateEGFR(data.creatinine, data.age, parseInt(data.sex));
     
-    // 基础风险评分
+    // Base risk score
     let riskScore = 0;
     
-    // 年龄 (非线性效应)
+    // Age (nonlinear effect)
     riskScore += data.age > 70 ? 0.25 : (data.age > 60 ? 0.15 : 0.08);
     
-    // 性别 (男性风险略高)
+    // Sex (males have slightly higher risk)
     riskScore += parseInt(data.sex) === 1 ? 0.05 : 0;
     
-    // BMI (过低或过高都有风险)
+    // BMI (both low and high increase risk)
     const bmiRisk = data.bmi < 20 ? 0.12 : (data.bmi > 28 ? 0.10 : 0.05);
     riskScore += bmiRisk;
     
-    // eGFR (肾功能下降增加风险)
+    // eGFR (declining kidney function increases risk)
     const egfrRisk = egfr < 30 ? 0.30 : (egfr < 60 ? 0.20 : (egfr < 90 ? 0.10 : 0.03));
     riskScore += egfrRisk;
     
-    // 血糖
+    // Glucose
     const glucoseRisk = data.glucose > 11 ? 0.15 : (data.glucose > 7.8 ? 0.10 : 0.04);
     riskScore += glucoseRisk;
     
-    // 血红蛋白 (贫血增加风险)
+    // Hemoglobin (anemia increases risk)
     const hbRisk = data.hb < 10 ? 0.18 : (data.hb < 12 ? 0.12 : 0.05);
     riskScore += hbRisk;
     
-    // RDW (分布宽度增加标志风险)
+    // RDW (higher distribution width indicates risk)
     const rdwRisk = data.rdw > 15 ? 0.14 : (data.rdw > 14 ? 0.08 : 0.04);
     riskScore += rdwRisk;
     
-    // WBC (炎症标志)
+    // WBC (inflammation marker)
     const wbcRisk = data.wbc > 12 ? 0.12 : (data.wbc > 10 ? 0.08 : 0.04);
     riskScore += wbcRisk;
     
-    // 根据模型类型调整预测
+    // Adjust prediction based on model type
     let probability;
     switch(model) {
         case 'NB':
-            // Naive Bayes: 概率估计更平滑，趋向于保守
+            // Naive Bayes: Probability estimation smoother, tends to be conservative
             probability = 1 / (1 + Math.exp(-(riskScore - 0.5) * 1.5));
             break;
         case 'LR':
-            // Logistic Regression: 标准sigmoid
+            // Logistic Regression: Standard sigmoid
             probability = 1 / (1 + Math.exp(-(riskScore - 0.5) * 2));
             break;
         case 'SVM':
-            // SVM: 决策边界更硬
+            // SVM: Harder decision boundary
             probability = 1 / (1 + Math.exp(-(riskScore - 0.5) * 2.5));
             break;
         case 'MLP':
-            // MLP: 神经网络非线性更强
+            // MLP: Neural network with stronger nonlinearity
             probability = 1 / (1 + Math.exp(-(riskScore - 0.45) * 2.2));
             break;
         case 'RF':
-            // Random Forest: 树的集成，概率趋于平均
+            // Random Forest: Tree ensemble, probability tends to average
             probability = 1 / (1 + Math.exp(-(riskScore - 0.52) * 2));
             break;
         case 'GBDT':
-            // Gradient Boosting: 强分类器
+            // Gradient Boosting: Strong classifier
             probability = 1 / (1 + Math.exp(-(riskScore - 0.48) * 2.3));
             break;
         case 'XGBoost':
-            // XGBoost: 高效梯度提升
+            // XGBoost: Efficient gradient boosting
             probability = 1 / (1 + Math.exp(-(riskScore - 0.50) * 2.4));
             break;
         case 'LightGBM':
         default:
-            // LightGBM: 默认最佳模型
+            // LightGBM: Default optimal model
             probability = 1 / (1 + Math.exp(-(riskScore - 0.50) * 2));
             break;
     }
@@ -159,14 +159,14 @@ function getThreshold(strategy) {
         'sensitivity': 0.074,
         'specificity': 0.500,
         'cost': 0.014,
-        'recommended': 0.075  // 推荐阈值
+        'recommended': 0.075  // Recommended threshold
     };
-    return thresholds[strategy] || 0.075;  // 默认使用推荐阈值
+    return thresholds[strategy] || 0.075;  // Default: recommended threshold
 }
 
 // 获取阈值策略的性能指标
 function getThresholdMetrics(strategy) {
-    // 使用真实的推荐阈值 0.075
+    // Use real recommended threshold 0.075
     if (strategy === 'recommended' || strategy === 'youden') {
         return {
             threshold: 0.075,
@@ -175,7 +175,7 @@ function getThresholdMetrics(strategy) {
             ppv: 0.24,
             npv: 0.98,
             f1: 0.38,
-            scenario: '推荐阈值 (Test: Sens=0.865, Ext: Sens=0.703)'
+            scenario: 'Recommended (Test: Sens=0.865, Ext: Sens=0.703)'
         };
     }
     
@@ -192,7 +192,7 @@ function getThresholdMetrics(strategy) {
         ppv: 0.24,
         npv: 0.98,
         f1: 0.38,
-        scenario: '推荐阈值'
+        scenario: 'Recommended Threshold'
     };
 }
 
@@ -265,18 +265,18 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
         document.getElementById('results-placeholder').style.display = 'none';
         document.getElementById('results-content').style.display = 'block';
         
-        // 更新风险百分比
+        // 更新Risk百分比
         const riskPct = Math.round(result.probability * 100);
         document.getElementById('risk-percentage').textContent = riskPct + '%';
         
-        // 更新风险等级
+        // 更新Risk等级
         const levelEl = document.getElementById('risk-level');
         if (riskPct < 15) {
-            levelEl.innerHTML = '<span class="level-badge level-low">低风险</span>';
+            levelEl.innerHTML = '<span class="level-badge level-low">Low Risk</span>';
         } else if (riskPct < 30) {
-            levelEl.innerHTML = '<span class="level-badge level-moderate">中风险</span>';
+            levelEl.innerHTML = '<span class="level-badge level-moderate">Moderate Risk</span>';
         } else {
-            levelEl.innerHTML = '<span class="level-badge level-high">高风险</span>';
+            levelEl.innerHTML = '<span class="level-badge level-high">High Risk</span>';
         }
         
         // 更新指标
@@ -288,14 +288,14 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
         // 更新建议
         const recEl = document.getElementById('recommendation-text');
         if (riskPct < 15) {
-            recEl.textContent = '患者MACE风险较低。建议标准术后随访（30天、90天门诊），继续当前药物治疗方案。';
+            recEl.textContent = '患者MACERisk较低。建议标准术后随访（30天、90天门诊），继续当前药物治疗方案。';
         } else if (riskPct < 30) {
-            recEl.textContent = '患者MACE风险中等。建议加强随访（30天、60天、90天门诊），密切监测血压、血脂、血糖，考虑强化药物治疗。';
+            recEl.textContent = '患者MACERisk中等。建议加强随访（30天、60天、90天门诊），密切监测血压、血脂、Glucose，考虑强化药物治疗。';
         } else {
-            recEl.textContent = '患者MACE风险较高！建议密切监测，可考虑更频繁的随访（每2周），强化抗血小板和他汀治疗，必要时进行心脏康复评估。';
+            recEl.textContent = '患者MACERisk较高！建议密切监测，可考虑更频繁的随访（每2周），强化抗血小板和他汀治疗，必要时进行心脏康复评估。';
         }
         
-        // 绘制风险仪表盘
+        // 绘制Risk仪表盘
         drawRiskGauge(result.probability);
         
         // 绘制特征重要性
@@ -308,7 +308,7 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
     }, 800);
 });
 
-// 绘制风险仪表盘
+// 绘制Risk仪表盘
 function drawRiskGauge(probability) {
     const ctx = document.getElementById('riskChart').getContext('2d');
     
@@ -321,7 +321,7 @@ function drawRiskGauge(probability) {
     window.riskGaugeChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['风险', '剩余'],
+            labels: ['Risk', 'Remaining'],
             datasets: [{
                 data: [percentage, 100 - percentage],
                 backgroundColor: [
@@ -353,7 +353,7 @@ function drawSHAPChart(formData, result) {
         window.shapChart.destroy();
     }
     
-    // 计算各特征的贡献
+    // Calculate feature contributions
     const contributions = [
         { feature: 'Age', value: formData.age > 70 ? 0.18 : 0.10 },
         { feature: 'Hb', value: formData.hb < 11 ? 0.15 : 0.06 },
@@ -587,7 +587,7 @@ function initCalibrationChart() {
             },
             scales: {
                 x: {
-                    title: { display: true, text: '预测概率' },
+                    title: { display: true, text: 'Prediction Probability' },
                     min: 0,
                     max: 0.7
                 },

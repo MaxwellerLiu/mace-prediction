@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MACE预测系统 - PCI术后90天风险评估</title>
+    <title>MACE Prediction System - 90-Day Post-PCI Risk Assessment</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
@@ -11,73 +11,74 @@
 <body>
     <header class="header">
         <div class="container">
-            <h1>🏥 MACE风险预测系统</h1>
-            <p class="subtitle">PCI术后90天主要不良心血管事件风险评估</p>
+            <h1>🏥 MACE Risk Prediction System</h1>
+            <p class="subtitle">90-Day Major Adverse Cardiac Events Risk Assessment After PCI</p>
             <nav class="nav">
-                <button class="nav-btn active" data-section="predictor">风险预测</button>
-                <button class="nav-btn" data-section="models">模型对比</button>
-                <button class="nav-btn" data-section="thresholds">阈值分析</button>
-                <button class="nav-btn" data-section="about">关于项目</button>
+                <button class="nav-btn active" data-section="predictor">Risk Prediction</button>
+                <button class="nav-btn" data-section="models">Model Comparison</button>
+                <button class="nav-btn" data-section="thresholds">Threshold Analysis</button>
+                <button class="nav-btn" data-section="about">About</button>
             </nav>
         </div>
     </header>
 
     <main class="main">
-        <!-- 风险预测页面 -->
+        <!-- Risk Prediction Section -->
         <section id="predictor" class="section active">
             <div class="container">
                 <div class="two-column">
                     <div class="card input-card">
-                        <h2>📝 患者信息录入</h2>
+                        <h2>📝 Patient Information</h2>
                         <form id="prediction-form">
                             <div class="form-group">
-                                <label for="age">年龄 (岁)</label>
-                                <input type="number" id="age" name="age" min="18" max="120" required placeholder="例如: 65">
+                                <label for="age">Age (years)</label>
+                                <input type="number" id="age" name="age" min="18" max="120" required placeholder="e.g., 65">
                             </div>
                             
                             <div class="form-group">
-                                <label for="sex">性别</label>
+                                <label for="sex">Sex</label>
                                 <select id="sex" name="sex" required>
-                                    <option value="">请选择</option>
-                                    <option value="0">女性</option>
-                                    <option value="1">男性</option>
+                                    <option value="">Select</option>
+                                    <option value="0">Female</option>
+                                    <option value="1">Male</option>
                                 </select>
                             </div>
                             
                             <div class="form-group">
                                 <label for="bmi">BMI (kg/m²)</label>
-                                <input type="number" id="bmi" name="bmi" step="0.1" min="10" max="60" required placeholder="例如: 24.5">
+                                <input type="number" id="bmi" name="bmi" step="0.1" min="10" max="60" required placeholder="e.g., 24.5">
                             </div>
                             
                             <div class="form-group">
-                                <label for="creatinine">肌酐 (Creatinine, mg/dL)</label>
-                                <input type="number" id="creatinine" name="creatinine" step="0.01" min="0.1" max="20" required placeholder="例如: 1.2">
+                                <label for="creatinine">Creatinine (mg/dL)</label>
+                                <input type="number" id="creatinine" name="creatinine" step="0.01" min="0.1" max="20" required placeholder="e.g., 1.2">
+                                <small class="help-text">eGFR will be calculated automatically using CKD-EPI 2021 equation</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="glucose">血糖 (Glucose, mmol/L)</label>
-                                <input type="number" id="glucose" name="glucose" step="0.1" min="2" max="50" required placeholder="例如: 7.5">
+                                <label for="glucose">Glucose (mmol/L)</label>
+                                <input type="number" id="glucose" name="glucose" step="0.1" min="2" max="50" required placeholder="e.g., 7.5">
                             </div>
                             
                             <div class="form-group">
-                                <label for="hb">血红蛋白 (Hb, g/dL)</label>
-                                <input type="number" id="hb" name="hb" step="0.1" min="5" max="20" required placeholder="例如: 12.5">
+                                <label for="hb">Hemoglobin (Hb, g/dL)</label>
+                                <input type="number" id="hb" name="hb" step="0.1" min="5" max="20" required placeholder="e.g., 12.5">
                             </div>
                             
                             <div class="form-group">
-                                <label for="rdw">红细胞分布宽度 (RDW, %)</label>
-                                <input type="number" id="rdw" name="rdw" step="0.1" min="10" max="25" required placeholder="例如: 14.5">
+                                <label for="rdw">Red Cell Distribution Width (RDW, %)</label>
+                                <input type="number" id="rdw" name="rdw" step="0.1" min="10" max="25" required placeholder="e.g., 14.5">
                             </div>
                             
                             <div class="form-group">
-                                <label for="wbc">白细胞计数 (WBC, ×10⁹/L)</label>
-                                <input type="number" id="wbc" name="wbc" step="0.1" min="1" max="50" required placeholder="例如: 8.5">
+                                <label for="wbc">White Blood Cell Count (WBC, ×10⁹/L)</label>
+                                <input type="number" id="wbc" name="wbc" step="0.1" min="1" max="50" required placeholder="e.g., 8.5">
                             </div>
                             
                             <div class="form-group">
-                                <label for="model-select">选择预测模型 <span class="badge-recommended">★ 最终选定</span></label>
+                                <label for="model-select">Prediction Model <span class="badge-recommended">★ Final Selected</span></label>
                                 <select id="model-select" name="model" required>
-                                    <option value="NB" selected>Naive Bayes (NB) - 最优模型</option>
+                                    <option value="NB" selected>Naive Bayes (NB) - Optimal Model</option>
                                     <option value="LightGBM">LightGBM</option>
                                     <option value="XGBoost">XGBoost</option>
                                     <option value="RF">Random Forest</option>
@@ -86,91 +87,45 @@
                                     <option value="SVM">SVM</option>
                                     <option value="MLP">Neural Network</option>
                                 </select>
-                                <small class="help-text">经过15种模型对比(5折交叉验证+超参调优+外部验证)，NB被选为最优单一模型 (Ext AUROC=0.755, Gap=+0.086)</small>
+                                <small class="help-text">NB selected as optimal model after comparing 15 algorithms (5-fold CV + hyperparameter tuning + external validation). Ext AUROC=0.755, Gap=+0.086</small>
                             </div>
 
                             <div class="form-group threshold-group">
-                                <label>阈值策略 <span class="badge-recommended">推荐: 0.075</span></label>
+                                <label>Threshold Strategy <span class="badge-recommended">Recommended: 0.075</span></label>
                                 <div class="threshold-options">
                                     <label class="radio-label">
                                         <input type="radio" name="threshold" value="recommended" checked>
-                                        <span>★ 推荐阈值 (0.075) - Test: Sens=0.865</span>
+                                        <span>★ Recommended (0.075) - Test: Sens=0.865</span>
                                     </label>
                                     <label class="radio-label">
                                         <input type="radio" name="threshold" value="youden">
-                                        <span>Youden指数 (0.053) - 平衡</span>
+                                        <span>Youden Index (0.053) - Balanced</span>
                                     </label>
                                     <label class="radio-label">
                                         <input type="radio" name="threshold" value="sensitivity">
-                                        <span>高敏感度 (0.074) - 筛查</span>
+                                        <span>High Sensitivity (0.074) - Screening</span>
                                     </label>
                                     <label class="radio-label">
                                         <input type="radio" name="threshold" value="specificity">
-                                        <span>高特异度 (0.50) - 确诊</span>
+                                        <span>High Specificity (0.50) - Diagnosis</span>
                                     </label>
                                     <label class="radio-label">
                                         <input type="radio" name="threshold" value="cost">
-                                        <span>成本敏感 (0.014) - 10:1</span>
+                                        <span>Cost-sensitive (0.014) - 10:1</span>
                                     </label>
                                 </div>
-                                <small class="help-text">推荐阈值0.075基于外部验证集Sens=0.703, NPV=0.952</small>
+                                <small class="help-text">Recommended threshold 0.075 based on external validation: Sens=0.703, NPV=0.952</small>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary">
-                                <span class="btn-text">🔍 预测MACE风险</span>
-                                <span class="btn-loading" style="display:none;">计算中...</span>
-                            </button>
+                            <button type="submit" class="btn-primary">🔍 Predict MACE Risk</button>
                         </form>
                     </div>
                     
-                    <div class="card results-card">
-                        <h2>📊 预测结果</h2>
-                        <div id="results-placeholder" class="placeholder">
-                            <div class="placeholder-icon">📋</div>
-                            <p>请填写左侧表单并点击预测按钮</p>
-                        </div>
-                        <div id="results-content" class="results-content" style="display:none;">
-                            <div class="risk-gauge">
-                                <canvas id="riskChart"></canvas>
-                                <div class="risk-value">
-                                    <span id="risk-percentage">--</span>
-                                    <span class="risk-label">风险概率</span>
-                                </div>
-                            </div>
-                            
-                            <div class="risk-level" id="risk-level">
-                                <span class="level-badge">--</span>
-                            </div>
-                            
-                            <div class="metrics-grid">
-                                <div class="metric-item">
-                                    <span class="metric-label">敏感度</span>
-                                    <span class="metric-value" id="sensitivity">--</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">特异度</span>
-                                    <span class="metric-value" id="specificity">--</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">NPV</span>
-                                    <span class="metric-value" id="npv">--</span>
-                                </div>
-                                <div class="metric-item">
-                                    <span class="metric-label">PPV</span>
-                                    <span class="metric-value" id="ppv">--</span>
-                                </div>
-                            </div>
-                            
-                            <div class="recommendation" id="recommendation">
-                                <h4>临床建议</h4>
-                                <p id="recommendation-text">--</p>
-                            </div>
-                            
-                            <div class="feature-importance">
-                                <h4>特征贡献度</h4>
-                                <div id="shap-chart-container">
-                                    <canvas id="shapChart"></canvas>
-                                </div>
+                    <div class="card result-card">
+                        <h2>📊 Prediction Result</h2>
+                        <div id="result-container">
+                            <div class="placeholder">
+                                <p>Please enter patient information and click "Predict MACE Risk"</p>
                             </div>
                         </div>
                     </div>
@@ -178,176 +133,160 @@
             </div>
         </section>
 
-        <!-- 模型对比页面 -->
+        <!-- Model Comparison Section -->
         <section id="models" class="section">
             <div class="container">
-                <h2>🤖 机器学习模型性能对比</h2>
-                <p class="section-desc">基于15种机器学习算法的内部测试集和外部验证集AUROC对比</p>
+                <h2>🔬 Model Performance Comparison</h2>
+                <p class="section-desc">Comparison of 15 machine learning algorithms. NB selected as optimal model based on External AUROC and generalization gap.</p>
                 
-                <div class="card chart-card">
-                    <div class="chart-header">
-                        <h3>AUROC对比 - 测试集 vs 外部验证集</h3>
-                        <div class="chart-legend">
-                            <span class="legend-item"><span class="dot test"></span> 测试集</span>
-                            <span class="legend-item"><span class="dot external"></span> 外部验证集</span>
-                            <span class="legend-item"><span class="dot best"></span> 最佳模型</span>
-                        </div>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <h3>AUROC Comparison (Testing Set)</h3>
+                        <canvas id="auroc-chart-test"></canvas>
                     </div>
-                    <canvas id="modelsChart"></canvas>
+                    <div class="chart-card">
+                        <h3>AUROC Comparison (External Validation)</h3>
+                        <canvas id="auroc-chart-ext"></canvas>
+                    </div>
+                    <div class="chart-card full-width">
+                        <h3>Test vs External AUROC Scatter Plot</h3>
+                        <canvas id="scatter-chart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Model Performance Metrics</h3>
+                        <canvas id="metrics-chart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Generalization Gap (Test - External)</h3>
+                        <canvas id="gap-chart"></canvas>
+                    </div>
                 </div>
                 
-                <div class="two-column">
-                    <div class="card">
-                        <h3>📈 ROC曲线对比</h3>
-                        <canvas id="rocChart"></canvas>
-                    </div>
-                    <div class="card">
-                        <h3>🎯 校准曲线 (Calibration)</h3>
-                        <canvas id="calibrationChart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h3>📋 模型性能详细指标</h3>
-                    <div class="table-wrapper">
-                        <table class="data-table" id="models-table">
+                <div class="card table-card">
+                    <h3>📋 Detailed Performance Table</h3>
+                    <div class="table-container">
+                        <table id="model-table" class="data-table">
                             <thead>
                                 <tr>
-                                    <th>模型</th>
-                                    <th>测试集AUROC</th>
-                                    <th>外部验证AUROC</th>
-                                    <th>差距</th>
-                                    <th>准确度</th>
-                                    <th>F1分数</th>
-                                    <th>Brier分数</th>
+                                    <th>Rank</th>
+                                    <th>Model</th>
+                                    <th>Test AUROC</th>
+                                    <th>External AUROC</th>
+                                    <th>Gap</th>
+                                    <th>Accuracy</th>
+                                    <th>Sensitivity</th>
+                                    <th>Specificity</th>
+                                    <th>F1</th>
+                                    <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody id="models-table-body">
-                                <!-- 动态填充 -->
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 阈值分析页面 -->
+        <!-- Threshold Analysis Section -->
         <section id="thresholds" class="section">
             <div class="container">
-                <h2>⚖️ 阈值策略分析</h2>
-                <p class="section-desc">不同临床场景下的最优阈值选择策略</p>
+                <h2>⚖️ Threshold Strategy Analysis</h2>
+                <p class="section-desc">Different threshold strategies for clinical decision-making. Recommended: 0.075</p>
                 
-                <div class="two-column">
-                    <div class="card">
-                        <h3>阈值 vs 性能指标</h3>
-                        <canvas id="thresholdChart"></canvas>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <h3>Sensitivity vs Specificity Trade-off</h3>
+                        <canvas id="threshold-tradeoff-chart"></canvas>
                     </div>
-                    <div class="card">
-                        <h3>决策曲线分析 (DCA)</h3>
-                        <canvas id="dcaChart"></canvas>
+                    <div class="chart-card">
+                        <h3>Metrics at Different Thresholds</h3>
+                        <canvas id="threshold-metrics-chart"></canvas>
+                    </div>
+                    <div class="chart-card full-width">
+                        <h3>Decision Curve Analysis (DCA)</h3>
+                        <canvas id="dca-chart"></canvas>
                     </div>
                 </div>
                 
-                <div class="card">
-                    <h3>阈值策略对比</h3>
-                    <div class="table-wrapper">
-                        <table class="data-table" id="threshold-table">
+                <div class="card table-card">
+                    <h3>📋 Threshold Strategy Comparison</h3>
+                    <div class="table-container">
+                        <table id="threshold-table" class="data-table">
                             <thead>
                                 <tr>
-                                    <th>策略</th>
-                                    <th>阈值</th>
-                                    <th>敏感度</th>
-                                    <th>特异度</th>
+                                    <th>Strategy</th>
+                                    <th>Threshold</th>
+                                    <th>Sensitivity</th>
+                                    <th>Specificity</th>
                                     <th>PPV</th>
                                     <th>NPV</th>
                                     <th>F1</th>
-                                    <th>适用场景</th>
+                                    <th>Scenario</th>
                                 </tr>
                             </thead>
-                            <tbody id="threshold-table-body">
-                                <!-- 动态填充 -->
-                            </tbody>
+                            <tbody></tbody>
                         </table>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h3>🔥 阈值-性能热力图</h3>
-                    <div class="heatmap-container">
-                        <canvas id="heatmapChart"></canvas>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 关于项目页面 -->
+        <!-- About Section -->
         <section id="about" class="section">
             <div class="container">
-                <h2>📚 关于本项目</h2>
+                <h2>📖 About This Project</h2>
                 
-                <div class="card">
-                    <h3>研究背景</h3>
-                    <p>
-                        本项目旨在开发一个基于机器学习的MACE（主要不良心血管事件）风险预测系统，
-                        用于评估PCI（经皮冠状动脉介入治疗）术后90天内患者发生MACE的风险。
-                        通过整合8项临床常规检测指标，实现对高风险患者的早期识别和干预。
-                    </p>
-                </div>
-                
-                <div class="two-column">
-                    <div class="card">
-                        <h3>🔬 研究方法</h3>
-                        <ul class="feature-list">
-                            <li><strong>特征筛选：</strong>LASSO + Boruta + RFE</li>
-                            <li><strong>模型选择：</strong>15种机器学习算法</li>
-                            <li><strong>超参优化：</strong>5折交叉验证 + 随机搜索</li>
-                            <li><strong>阈值策略：</strong>Youden、敏感度优先、成本敏感等</li>
-                            <li><strong>验证方法：</strong>内部测试集 + 外部独立验证集</li>
+                <div class="about-grid">
+                    <div class="card about-card">
+                        <h3>🎯 Research Objective</h3>
+                        <p>This project develops a clinical decision support system for predicting 90-day Major Adverse Cardiac Events (MACE) risk in patients after Percutaneous Coronary Intervention (PCI).</p>
+                        <p>By analyzing 8 routine clinical indicators, the system provides real-time risk assessment to assist clinical decision-making.</p>
+                    </div>
+                    
+                    <div class="card about-card">
+                        <h3>📊 Study Design</h3>
+                        <ul>
+                            <li><strong>Training Set:</strong> 799 patients (MACE+ 85, 10.6%)</li>
+                            <li><strong>Testing Set:</strong> 343 patients (MACE+ 37, 10.8%)</li>
+                            <li><strong>External Validation:</strong> 338 patients (MACE+ 37, 10.9%)</li>
+                            <li><strong>Features:</strong> 8 clinical variables (Age, Sex, BMI, eGFR, Glucose, Hb, RDW, WBC)</li>
+                            <li><strong>Methods:</strong> 5-fold cross-validation, hyperparameter tuning, SMOTE, threshold optimization</li>
                         </ul>
                     </div>
-                    <div class="card">
-                        <h3>📊 最终模型特征</h3>
-                        <ul class="feature-list">
-                            <li><strong>Age</strong> - 年龄</li>
-                            <li><strong>Sex</strong> - 性别</li>
-                            <li><strong>BMI</strong> - 体重指数</li>
-                            <li><strong>eGFR</strong> - 估算肾小球滤过率</li>
-                            <li><strong>Glucose</strong> - 血糖</li>
-                            <li><strong>Hb</strong> - 血红蛋白</li>
-                            <li><strong>RDW</strong> - 红细胞分布宽度</li>
-                            <li><strong>WBC</strong> - 白细胞计数</li>
+                    
+                    <div class="card about-card">
+                        <h3>🏆 Key Findings</h3>
+                        <ul>
+                            <li><strong>Optimal Model:</strong> Naive Bayes (NB)</li>
+                            <li><strong>Selection Criteria:</strong> Highest External AUROC + Smallest Generalization Gap</li>
+                            <li><strong>Test AUROC:</strong> 0.841 (0.778-0.899)</li>
+                            <li><strong>External AUROC:</strong> 0.755 (0.670-0.833)</li>
+                            <li><strong>Recommended Threshold:</strong> 0.075</li>
+                            <li><strong>Key Predictors:</strong> Glucose, eGFR, WBC, BMI, Hb</li>
                         </ul>
                     </div>
-                </div>
-                
-                <div class="card">
-                    <h3>📖 模型性能</h3>
-                    <div class="stats-grid">
-                        <div class="stat-box">
-                            <span class="stat-number">0.82</span>
-                            <span class="stat-label">外部验证AUROC</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-number">0.85</span>
-                            <span class="stat-label">敏感度 (阈值策略)</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-number">0.93</span>
-                            <span class="stat-label">NPV (阴性预测值)</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-number">15</span>
-                            <span class="stat-label">对比算法数量</span>
-                        </div>
+                    
+                    <div class="card about-card">
+                        <h3>⚕️ Clinical Application</h3>
+                        <p><strong>Risk Stratification:</strong></p>
+                        <ul>
+                            <li>🔴 <strong>High Risk (≥0.075):</strong> Enhanced monitoring and aggressive intervention recommended</li>
+                            <li>🟡 <strong>Moderate Risk (0.05-0.075):</strong> Standard care with close follow-up</li>
+                            <li>🟢 <strong>Low Risk (&lt;0.05):</strong> Routine management</li>
+                        </ul>
                     </div>
-                </div>
-                
-                <div class="card">
-                    <h3>⚠️ 使用声明</h3>
-                    <div class="disclaimer">
-                        <p><strong>本系统仅供临床参考，不能替代医生的专业判断。</strong></p>
-                        <p>预测结果应结合患者的完整临床信息、病史和其他检查结果进行综合评估。
-                        对于任何医疗决策，请务必咨询专业医疗人员。</p>
+                    
+                    <div class="card about-card">
+                        <h3>📚 Citation</h3>
+                        <p>If you use this tool in your research, please cite:</p>
+                        <blockquote>
+                            Machine Learning-Based Prediction of 90-Day MACE After PCI: Development and External Validation Using 8 Clinical Variables.
+                        </blockquote>
+                    </div>
+                    
+                    <div class="card about-card">
+                        <h3>⚠️ Disclaimer</h3>
+                        <p>This tool is for <strong>research and educational purposes only</strong>. It should not replace clinical judgment. Always consult qualified healthcare professionals for medical decisions.</p>
                     </div>
                 </div>
             </div>
@@ -356,8 +295,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>MACE预测系统 | 基于机器学习的PCI术后风险评估</p>
-            <p class="copyright">© 2025 研究项目 - 仅供学术交流使用</p>
+            <p>© 2024 MACE Prediction System | Based on Machine Learning Research | <span class="version">v1.0.0</span></p>
         </div>
     </footer>
 
