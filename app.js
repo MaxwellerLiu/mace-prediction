@@ -240,7 +240,9 @@ function drawFeatureChart() {
                 data: features.map(f => f.value),
                 backgroundColor: colors,
                 borderRadius: 3,
-                barThickness: 22
+                barThickness: 14,
+                categoryPercentage: 0.9,
+                barPercentage: 0.9
             }]
         },
         options: {
