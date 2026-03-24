@@ -239,9 +239,9 @@ function drawFeatureChart() {
             datasets: [{
                 data: features.map(f => f.value),
                 backgroundColor: colors,
-                borderRadius: 4,
-                barPercentage: 0.7,
-                categoryPercentage: 0.9
+                borderRadius: 3,
+                barThickness: 18,
+                maxBarThickness: 20
             }]
         },
         options: {
@@ -258,7 +258,12 @@ function drawFeatureChart() {
                 },
                 y: {
                     grid: { display: false, drawBorder: false },
-                    ticks: { font: { size: 11, lineHeight: 1.2 }, color: '#374151', padding: 8 }
+                    ticks: { 
+                        font: { size: 12 }, 
+                        color: '#374151',
+                        autoSkip: false,
+                        maxRotation: 0
+                    }
                 }
             },
             layout: {
