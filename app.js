@@ -240,7 +240,8 @@ function drawFeatureChart() {
                 data: features.map(f => f.value),
                 backgroundColor: colors,
                 borderRadius: 4,
-                barThickness: 14
+                barPercentage: 0.7,
+                categoryPercentage: 0.9
             }]
         },
         options: {
@@ -257,8 +258,11 @@ function drawFeatureChart() {
                 },
                 y: {
                     grid: { display: false, drawBorder: false },
-                    ticks: { font: { size: 11 }, color: '#374151' }
+                    ticks: { font: { size: 11, lineHeight: 1.2 }, color: '#374151', padding: 8 }
                 }
+            },
+            layout: {
+                padding: { left: 5, right: 10, top: 5, bottom: 5 }
             }
         }
     });

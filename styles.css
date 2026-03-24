@@ -385,7 +385,8 @@ body {
 }
 
 .chart-wrapper {
-    height: 200px;
+    height: 260px;
+    min-height: 260px;
 }
 
 /* ===== Responsive ===== */
