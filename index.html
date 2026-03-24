@@ -5,168 +5,203 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MACE Risk Prediction</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header class="header">
         <h1>🔬 MACE Risk Prediction</h1>
-        <span class="header-subtitle">90-Day Post-PCI in STEMI Patients | NB Model</span>
+        <span class="header-meta">90-Day Post-PCI | NB Model | Threshold 0.075</span>
     </header>
 
-    <div class="main-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <span>📝</span> Patient Information
-            </div>
-            
-            <div class="sidebar-body">
-                <form id="prediction-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Age (years)</label>
-                            <input type="number" id="age" min="18" max="120" value="65" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Sex</label>
-                            <select id="sex" required>
-                                <option value="0">Female</option>
-                                <option value="1" selected>Male</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>BMI (kg/m²)</label>
-                            <input type="number" id="bmi" step="0.1" value="24.5" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Creatinine (mg/dL)</label>
-                            <input type="number" id="creatinine" step="0.01" value="1.20" required>
+    <div class="main">
+        <div class="grid">
+            <!-- Sidebar -->
+            <div class="card">
+                <div class="card-header">📝 Patient Information</div>
+                <div class="card-body">
+                    <form id="prediction-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Age (years)</label>
+                                <input type="number" id="age" min="18" max="120" value="65" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Sex</label>
+                                <select id="sex" required>
+                                    <option value="0">Female</option>
+                                    <option value="1" selected>Male</option>
+                                </select>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>Glucose (mg/dL)</label>
-                            <input type="number" id="glucose" step="0.1" value="136.2" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Hemoglobin (g/dL)</label>
-                            <input type="number" id="hb" step="0.1" value="12.5" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>BMI (kg/m²)</label>
+                                <input type="number" id="bmi" step="0.1" value="24.5" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Creatinine (mg/dL)</label>
+                                <input type="number" id="creatinine" step="0.01" value="1.20" required>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label>RDW (%)</label>
-                            <input type="number" id="rdw" step="0.1" value="13.6" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Glucose (mg/dL)</label>
+                                <input type="number" id="glucose" step="0.1" value="136.2" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Hemoglobin (g/dL)</label>
+                                <input type="number" id="hb" step="0.1" value="12.5" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>WBC (×10⁹/L)</label>
-                            <input type="number" id="wbc" step="0.1" value="11.2" required>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>RDW (%)</label>
+                                <input type="number" id="rdw" step="0.1" value="13.6" required>
+                            </div>
+                            <div class="form-group">
+                                <label>WBC (×10⁹/L)</label>
+                                <input type="number" id="wbc" step="0.1" value="11.2" required>
+                            </div>
+                        </div>
+                        
+                        <div class="egfr-box">
+                            <span>eGFR</span>
+                            <span><span id="egfr-value" class="egfr-value">--</span> mL/min</span>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group full">
+                                <label>Model</label>
+                                <select id="model-select">
+                                    <option value="NB" selected>Naive Bayes (NB) ★ Best</option>
+                                    <option value="LightGBM">LightGBM</option>
+                                    <option value="XGBoost">XGBoost</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">🔮 Predict MACE Risk</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-grid">
+                <!-- Gauge -->
+                <div class="card">
+                    <div class="card-header">🎯 Risk Assessment</div>
+                    <div class="card-body">
+                        <div class="gauge-container">
+                            <canvas id="gaugeCanvas" width="240" height="130"></canvas>
+                            
+                            <div class="gauge-result">
+                                <div id="gauge-percentage" class="gauge-percentage low">12.4%</div>
+                                <div id="gauge-level" class="gauge-level low">✓ Low Risk</div>
+                                <div class="gauge-threshold">Threshold: 0.075 | NB Model</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="egfr-box">
-                        <span class="egfr-label">eGFR</span>
-                        <span><span id="egfr-value" class="egfr-value">--</span> mL/min</span>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Model</label>
-                        <select id="model-select">
-                            <option value="NB" selected>Naive Bayes (NB)</option>
-                            <option value="LightGBM">LightGBM</option>
-                            <option value="XGBoost">XGBoost</option>
-                            <option value="RF">Random Forest</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Threshold</label>
-                        <select id="threshold-select">
-                            <option value="recommended" selected>Recommended (0.075)</option>
-                            <option value="youden">Youden Index (0.053)</option>
-                            <option value="sensitivity">High Sensitivity (0.074)</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary">🔮 Predict</button>
-                    <button type="button" class="btn-secondary" onclick="resetForm()">🔄 Reset</button>
-                </form>
-            </div>
-        </aside>
+                </div>
 
-        <!-- Main Content -->
-        <main class="content-area">
-            <!-- Gauge -->
-            <div class="gauge-card">
-                <div class="gauge-title">90-Day MACE Risk</div>
-                <div class="gauge-wrapper">
-                    <canvas id="gaugeCanvas" width="240" height="140"></canvas>
-                    
-                    <div class="gauge-result">
-                        <div id="gauge-percentage" class="gauge-percentage low">12.4%</div>
-                        <div id="gauge-level" class="gauge-level low">✓ Low Risk</div>
-                        <div class="gauge-threshold">Threshold: 0.075 | NB Model</div>
+                <!-- Interpretation -->
+                <div class="card">
+                    <div class="card-header">📋 Clinical Interpretation</div>
+                    <div class="card-body">
+                        <p id="risk-interpretation" class="info-text">Patient has LOW MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.</p>
+                        
+                        <ul id="recommendation-list" class="rec-list" style="margin-top: 12px;">
+                            <li><span>🏥</span><span>Standard post-PCI discharge protocol</span></li>
+                            <li><span>📅</span><span>Routine follow-up at 4 weeks</span></li>
+                            <li><span>💊</span><span>Continue prescribed medications</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Performance -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">📊 Model Performance (External Validation)</div>
+                    <div class="card-body">
+                        <div class="metrics-box">
+                            <div class="metric">
+                                <div class="metric-name">AUROC</div>
+                                <div class="metric-value">0.755</div>
+                                <div class="metric-sub">95% CI: 0.670-0.833</div>
+                            </div>
+                            
+                            <div class="metric">
+                                <div class="metric-name">Sensitivity</div>
+                                <div class="metric-value">70.3%</div>
+                                <div class="metric-sub">at threshold 0.075</div>
+                            </div>
+                            
+                            <div class="metric">
+                                <div class="metric-name">Specificity</div>
+                                <div class="metric-value">72.1%</div>
+                                <div class="metric-sub">at threshold 0.075</div>
+                            </div>
+                            
+                            <div class="metric highlight">
+                                <div class="metric-name">NPV</div>
+                                <div class="metric-value">95.2%</div>
+                                <div class="metric-sub">Rule-out confidence</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">🔍 Feature Importance</div>
+                    <div class="card-body">
+                        <table class="features-table" id="features-table">
+                            <tr>
+                                <td class="feature-name">Glucose</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 84%; background: #ef4444;"></div></div></td>
+                                <td class="feature-value">0.084</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">eGFR</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 65%; background: #ef4444;"></div></div></td>
+                                <td class="feature-value">0.065</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Hemoglobin</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 14%; background: #3b82f6;"></div></div></td>
+                                <td class="feature-value">0.014</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Age</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 12%; background: #3b82f6;"></div></div></td>
+                                <td class="feature-value">0.012</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">WBC</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 9%; background: #6b7280;"></div></div></td>
+                                <td class="feature-value">0.009</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">RDW</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 4%; background: #6b7280;"></div></div></td>
+                                <td class="feature-value">0.004</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">BMI</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 3%; background: #6b7280;"></div></div></td>
+                                <td class="feature-value">0.003</td>
+                            </tr>
+                            <tr>
+                                <td class="feature-name">Sex</td>
+                                <td><div class="feature-bar"><div class="feature-fill" style="width: 2%; background: #9ca3af;"></div></div></td>
+                                <td class="feature-value">-0.002</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <!-- Interpretation -->
-            <div class="info-card">
-                <h4>Risk Interpretation</h4>
-                <p id="risk-interpretation">Patient has low MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.</p>
-            </div>
-
-            <!-- Recommendations -->
-            <div class="info-card">
-                <h4>Recommendations</h4>
-                <ul id="recommendation-list" class="recommendation-list">
-                    <li><span class="rec-icon">🏥</span><span>Standard post-PCI discharge protocol</span></li>
-                    <li><span class="rec-icon">📅</span><span>Routine follow-up at 4 weeks</span></li>
-                    <li><span class="rec-icon">💊</span><span>Continue prescribed medications</span></li>
-                </ul>
-            </div>
-
-            <!-- Feature Importance -->
-            <div class="feature-card">
-                <h4>Feature Contributions</h4>
-                <div class="chart-wrapper">
-                    <canvas id="featureChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Performance -->
-            <div class="performance-card">
-                <div class="performance-header">
-                    <h4>Model Performance (External Validation)</h4>
-                    <span class="model-tag">NB Model</span>
-                </div>
-                
-                <div class="metrics-grid">
-                    <div class="metric-item">
-                        <div class="metric-name">AUROC</div>
-                        <div class="metric-value">0.755</div>
-                        <div class="metric-sub">95% CI: 0.670-0.833</div>
-                    </div>
-                    
-                    <div class="metric-item">
-                        <div class="metric-name">Sensitivity</div>
-                        <div class="metric-value">70.3%</div>
-                        <div class="metric-sub">at threshold 0.075</div>
-                    </div>
-                    
-                    <div class="metric-item">
-                        <div class="metric-name">Specificity</div>
-                        <div class="metric-value">72.1%</div>
-                        <div class="metric-sub">at threshold 0.075</div>
-                    </div>
-                    
-                    <div class="metric-item highlight">
-                        <div class="metric-name">NPV</div>
-                        <div class="metric-value">95.2%</div>
-                        <div class="metric-sub">Rule-out confidence</div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script src="app.js"></script>
