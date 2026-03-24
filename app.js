@@ -254,22 +254,22 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
         model: document.getElementById('model-select').value
     };
     
-    // 模拟计算延迟
+    // Simulate calculation delay
     setTimeout(() => {
-        // 计算预测
+        // Calculate prediction
         const result = predictRisk(formData);
         const threshold = getThreshold(formData.threshold);
         const metrics = getThresholdMetrics(formData.threshold);
         
-        // 显示结果
+        // Show results
         document.getElementById('results-placeholder').style.display = 'none';
         document.getElementById('results-content').style.display = 'block';
         
-        // 更新Risk百分比
+        // Update Risk percentage
         const riskPct = Math.round(result.probability * 100);
         document.getElementById('risk-percentage').textContent = riskPct + '%';
         
-        // 更新Risk等级
+        // Update Risk level
         const levelEl = document.getElementById('risk-level');
         if (riskPct < 15) {
             levelEl.innerHTML = '<span class="level-badge level-low">Low Risk</span>';
@@ -279,36 +279,36 @@ document.getElementById('prediction-form').addEventListener('submit', function(e
             levelEl.innerHTML = '<span class="level-badge level-high">High Risk</span>';
         }
         
-        // 更新指标
+        // Update metrics
         document.getElementById('sensitivity').textContent = (metrics.sensitivity * 100).toFixed(1) + '%';
         document.getElementById('specificity').textContent = (metrics.specificity * 100).toFixed(1) + '%';
         document.getElementById('npv').textContent = (metrics.npv * 100).toFixed(1) + '%';
         document.getElementById('ppv').textContent = (metrics.ppv * 100).toFixed(1) + '%';
         
-        // 更新建议
+        // Update recommendation
         const recEl = document.getElementById('recommendation-text');
         if (riskPct < 15) {
-            recEl.textContent = '患者MACERisk较低。建议标准术后随访（30天、90天门诊），继续当前药物治疗方案。';
+            recEl.textContent = 'Patient has LOW MACE risk. Recommend standard postoperative follow-up (30-day and 90-day outpatient visits), continue current medication regimen.';
         } else if (riskPct < 30) {
-            recEl.textContent = '患者MACERisk中等。建议加强随访（30天、60天、90天门诊），密切监测血压、血脂、Glucose，考虑强化药物治疗。';
+            recEl.textContent = 'Patient has MODERATE MACE risk. Recommend enhanced follow-up (30, 60, 90-day outpatient visits), closely monitor blood pressure, lipids, glucose, consider intensified drug therapy.';
         } else {
-            recEl.textContent = '患者MACERisk较高！建议密切监测，可考虑更频繁的随访（每2周），强化抗血小板和他汀治疗，必要时进行心脏康复评估。';
+            recEl.textContent = 'Patient has HIGH MACE risk! Recommend close monitoring, consider more frequent follow-up (every 2 weeks), intensify antiplatelet and statin therapy, consider cardiac rehabilitation evaluation when necessary.';
         }
         
-        // 绘制Risk仪表盘
+        // Draw Risk gauge
         drawRiskGauge(result.probability);
         
         // 绘制特征重要性
         drawSHAPChart(formData, result);
         
-        // 恢复按钮
+        // Restore button
         btnText.style.display = 'inline';
         btnLoading.style.display = 'none';
         btn.disabled = false;
     }, 800);
 });
 
-// 绘制Risk仪表盘
+// Draw Risk gauge
 function drawRiskGauge(probability) {
     const ctx = document.getElementById('riskChart').getContext('2d');
     
@@ -345,7 +345,7 @@ function drawRiskGauge(probability) {
     });
 }
 
-// 绘制SHAP特征贡献图
+// Draw SHAP feature contribution chart
 function drawSHAPChart(formData, result) {
     const ctx = document.getElementById('shapChart').getContext('2d');
     
