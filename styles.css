@@ -140,7 +140,7 @@ body {
 /* Results Grid */
 .results-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 320px 1fr;
     gap: 12px;
 }
 
@@ -278,7 +278,7 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
     .grid { grid-template-columns: 280px 1fr; }
     .results-grid { grid-template-columns: 1fr; }
     .metrics-box { grid-template-columns: repeat(2, 1fr); }
