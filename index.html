@@ -106,54 +106,8 @@
                     </div>
                 </div>
 
-                <!-- Interpretation -->
+                <!-- Feature Importance -->
                 <div class="card">
-                    <div class="card-header">📋 Clinical Interpretation</div>
-                    <div class="card-body">
-                        <p id="risk-interpretation" class="info-text">Patient has LOW MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.</p>
-                        
-                        <ul id="recommendation-list" class="rec-list" style="margin-top: 12px;">
-                            <li><span>🏥</span><span>Standard post-PCI discharge protocol</span></li>
-                            <li><span>📅</span><span>Routine follow-up at 4 weeks</span></li>
-                            <li><span>💊</span><span>Continue prescribed medications</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Performance -->
-                <div class="card" style="grid-column: 1 / -1;">
-                    <div class="card-header">📊 Model Performance (External Validation)</div>
-                    <div class="card-body">
-                        <div class="metrics-box">
-                            <div class="metric">
-                                <div class="metric-name">AUROC</div>
-                                <div class="metric-value">0.755</div>
-                                <div class="metric-sub">95% CI: 0.670-0.833</div>
-                            </div>
-                            
-                            <div class="metric">
-                                <div class="metric-name">Sensitivity</div>
-                                <div class="metric-value">70.3%</div>
-                                <div class="metric-sub">at threshold 0.075</div>
-                            </div>
-                            
-                            <div class="metric">
-                                <div class="metric-name">Specificity</div>
-                                <div class="metric-value">72.1%</div>
-                                <div class="metric-sub">at threshold 0.075</div>
-                            </div>
-                            
-                            <div class="metric highlight">
-                                <div class="metric-name">NPV</div>
-                                <div class="metric-value">95.2%</div>
-                                <div class="metric-sub">Rule-out confidence</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Features -->
-                <div class="card" style="grid-column: 1 / -1;">
                     <div class="card-header">🔍 Feature Importance</div>
                     <div class="card-body">
                         <table class="features-table" id="features-table">
@@ -198,6 +152,52 @@
                                 <td class="feature-value">-0.002</td>
                             </tr>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Clinical Interpretation -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">📋 Clinical Interpretation</div>
+                    <div class="card-body">
+                        <p id="risk-interpretation" class="info-text">Patient has LOW MACE risk. Standard post-PCI care is appropriate with routine follow-up at 4 weeks.</p>
+                        
+                        <ul id="recommendation-list" class="rec-list" style="margin-top: 12px;">
+                            <li><span>🏥</span><span>Standard post-PCI discharge protocol</span></li>
+                            <li><span>📅</span><span>Routine follow-up at 4 weeks</span></li>
+                            <li><span>💊</span><span>Continue prescribed medications</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Model Performance -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">📊 Model Performance (External Validation)</div>
+                    <div class="card-body">
+                        <div class="metrics-box">
+                            <div class="metric">
+                                <div class="metric-name">AUROC</div>
+                                <div class="metric-value">0.755</div>
+                                <div class="metric-sub">95% CI: 0.670-0.833</div>
+                            </div>
+                            
+                            <div class="metric">
+                                <div class="metric-name">Sensitivity</div>
+                                <div class="metric-value">70.3%</div>
+                                <div class="metric-sub">at threshold 0.075</div>
+                            </div>
+                            
+                            <div class="metric">
+                                <div class="metric-name">Specificity</div>
+                                <div class="metric-value">72.1%</div>
+                                <div class="metric-sub">at threshold 0.075</div>
+                            </div>
+                            
+                            <div class="metric highlight">
+                                <div class="metric-name">NPV</div>
+                                <div class="metric-value">95.2%</div>
+                                <div class="metric-sub">Rule-out confidence</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
