@@ -156,8 +156,8 @@ function drawGauge(probability) {
     }
     
     // Calculate needle angle
-    // 0% = left (Math.PI), 100% = right (0 or 2*Math.PI)
-    const needleAngle = Math.PI + (Math.PI * probability);
+    // 0% = left (Math.PI), 50% = top (Math.PI/2), 100% = right (0)
+    const needleAngle = Math.PI * (1 - probability);
     const needleLength = radius - 5;
     
     // Draw needle
