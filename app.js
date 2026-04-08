@@ -633,7 +633,7 @@ function drawGauge(probability) {
         ctx.stroke();
     });
     
-    // Draw threshold markers
+    // Draw threshold markers (0%, 10%, 20%, 30%, 50%, 75%, 100%)
     [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0].forEach((pct, i) => {
         const angle = Math.PI * (1 - pct);
         const markerLength = (i === 0 || i === 6) ? 15 : 10;
@@ -647,7 +647,7 @@ function drawGauge(probability) {
         ctx.strokeStyle = '#374151';
         ctx.stroke();
         
-        // Labels
+        // Percentage labels only (no risk level text)
         const labelRadius = radius + lineWidth/2 + 25;
         const labelX = centerX + Math.cos(angle) * labelRadius;
         const labelY = centerY + Math.sin(angle) * labelRadius;
@@ -658,22 +658,6 @@ function drawGauge(probability) {
         ctx.textBaseline = 'middle';
         ctx.fillText(Math.round(pct * 100) + '%', labelX, labelY);
     });
-    
-    // Draw threshold labels with matching colors
-    const t = i18n[currentLang];
-    ctx.font = 'bold 12px sans-serif';
-    
-    ctx.fillStyle = '#16a34a';
-    ctx.fillText(t.lowRisk, centerX - radius * 0.75, centerY - radius * 0.25);
-    
-    ctx.fillStyle = '#eab308';
-    ctx.fillText(t.moderateRisk, centerX - radius * 0.25, centerY - radius * 0.65);
-    
-    ctx.fillStyle = '#ea580c';
-    ctx.fillText(t.highRisk, centerX + radius * 0.15, centerY - radius * 0.65);
-    
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText(t.veryHighRisk, centerX + radius * 0.65, centerY - radius * 0.25);
     
     // Needle with animation support
     // 0% risk = Math.PI (left), 100% risk = 0 (right)
