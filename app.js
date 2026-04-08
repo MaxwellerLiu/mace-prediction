@@ -633,27 +633,30 @@ function drawGauge(probability) {
         ctx.stroke();
     });
     
-    // Draw threshold markers (0%, 10%, 20%, 30%, 50%, 75%, 100%)
-    [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0].forEach((pct, i) => {
+    // Draw tick marks and labels at key thresholds
+    // 0%, 10%, 20%, 30%, 50%, 75%, 100%
+    const tickPositions = [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0];
+    tickPositions.forEach((pct, i) => {
         const angle = Math.PI * (1 - pct);
-        const markerLength = (i === 0 || i === 6) ? 15 : 10;
+        const isMainTick = (pct === 0 || pct === 0.1 || pct === 0.2 || pct === 0.3 || pct === 1.0);
+        const markerLength = isMainTick ? 15 : 10;
         const innerR = radius - lineWidth/2 - markerLength;
         const outerR = radius + lineWidth/2 + markerLength;
         
         ctx.beginPath();
         ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
         ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
-        ctx.lineWidth = 2;
+        ctx.lineWidth = isMainTick ? 3 : 2;
         ctx.strokeStyle = '#374151';
         ctx.stroke();
         
-        // Percentage labels only (no risk level text)
-        const labelRadius = radius + lineWidth/2 + 25;
+        // Percentage labels
+        const labelRadius = radius + lineWidth/2 + 28;
         const labelX = centerX + Math.cos(angle) * labelRadius;
         const labelY = centerY + Math.sin(angle) * labelRadius;
         
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillStyle = '#6b7280';
+        ctx.font = isMainTick ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
+        ctx.fillStyle = '#374151';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(Math.round(pct * 100) + '%', labelX, labelY);

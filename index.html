@@ -137,7 +137,7 @@
 
         <!-- Main Content - Results -->
         <main class="main-content">
-            <!-- Top Row: Risk Assessment + Thresholds + Clinical Recommendations -->
+            <!-- Top Row: Risk Assessment + Clinical Recommendations -->
             <div class="top-row">
                 <!-- Risk Assessment Card -->
                 <div class="risk-card" id="risk-card">
@@ -156,8 +156,31 @@
                     </div>
                 </div>
 
+                <!-- Clinical Recommendations -->
+                <div class="recommendations-card">
+                    <div class="card-title">
+                        <span class="icon">💡</span>
+                        <span id="rec-title">临床建议</span>
+                    </div>
+                    <ul class="rec-list" id="rec-list">
+                        <li><span class="rec-icon">💊</span><span>强化双抗血小板治疗</span></li>
+                        <li><span class="rec-icon">📅</span><span>2、4、8周随访</span></li>
+                        <li><span class="rec-icon">💉</span><span>β受体阻滞剂应用</span></li>
+                        <li><span class="rec-icon">🏥</span><span>心脏康复评估</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Gauge Section with Thresholds -->
+            <div class="gauge-with-thresholds">
+                <div class="gauge-section">
+                    <div class="gauge-container">
+                        <canvas id="gaugeCanvas"></canvas>
+                    </div>
+                </div>
+                
                 <!-- Risk Thresholds Card -->
-                <div class="thresholds-card">
+                <div class="thresholds-card-compact">
                     <div class="card-title">
                         <span class="icon">📐</span>
                         <span id="thresholds-title">风险分层标准</span>
@@ -165,7 +188,7 @@
                     <ul class="threshold-list">
                         <li class="threshold-item low">
                             <span class="threshold-color"></span>
-                            <span class="threshold-text" id="threshold-low"><10% 低风险</span>
+                            <span class="threshold-text" id="threshold-low">&lt;10% 低风险</span>
                         </li>
                         <li class="threshold-item moderate">
                             <span class="threshold-color"></span>
@@ -190,27 +213,6 @@
                             <span id="ref-acc">参考ACC/AHA指南</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Clinical Recommendations -->
-                <div class="recommendations-card">
-                    <div class="card-title">
-                        <span class="icon">💡</span>
-                        <span id="rec-title">临床建议</span>
-                    </div>
-                    <ul class="rec-list" id="rec-list">
-                        <li><span class="rec-icon">💊</span><span>强化双抗血小板治疗</span></li>
-                        <li><span class="rec-icon">📅</span><span>2、4、8周随访</span></li>
-                        <li><span class="rec-icon">💉</span><span>β受体阻滞剂应用</span></li>
-                        <li><span class="rec-icon">🏥</span><span>心脏康复评估</span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Gauge Section -->
-            <div class="gauge-section">
-                <div class="gauge-container">
-                    <canvas id="gaugeCanvas"></canvas>
                 </div>
             </div>
 
