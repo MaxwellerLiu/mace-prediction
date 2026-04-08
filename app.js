@@ -1,498 +1,281 @@
-/**
- * MACE Risk Prediction - Professional Medical Interface
- * Based on evidence-based risk stratification thresholds
- * 
- * Risk Thresholds (Literature-based):
- * - Low: <10% (Reference: RISK-PCI low risk ~2%, ACC/AHA intermediate starts at 7.5%)
- * - Moderate: 10-20% (Reference: ACC/AHA intermediate risk 7.5-20%)
- * - High: 20-30% (Reference: MBF+GLS model threshold 30%)
- * - Very High: ≥30% (Reference: RISK-PCI very high risk 39.4%)
- * 
- * Key Literature:
- * 1. RISK-PCI Score: Mrdovic et al., Int J Cardiol 2013;162(3):220-227
- *    - C-statistic 0.78 for 1-year MACE prediction
- *    - Risk strata: Low(0-2.5pts), Int(3-4.5pts), High(5-6.5pts), Very High(≥7pts)
- * 
- * 2. MBF+GLS Model: Cardiac imaging-based prediction
- *    - AUC 0.95 with thresholds at 30% and 70%
- * 
- * 3. ACC/AHA 2019/2026 Guidelines:
- *    - Low: <5%, Borderline: 5-<7.5%, Intermediate: 7.5-<20%, High: ≥20%
- * 
- * 4. GRACE Score:
- *    - Low: <109, Intermediate: 109-140, High: >140
- */
-
 // ============================================
-// Translations
+// MACE Risk Prediction App
 // ============================================
-const i18n = {
-    zh: {
-        // Header
-        headerTitle: 'MACE风险预测',
-        headerSubtitle: 'STEMI患者PCI术后90天MACE风险预测模型',
-        
-        // Sidebar
-        sidebarTitle: '患者信息',
-        labelCreatinine: '肌酐',
-        labelAge: '年龄',
-        labelSex: '性别',
-        optMale: '男性',
-        optFemale: '女性',
-        labelBMI: 'BMI (kg/m²)',
-        heightPlaceholder: '身高 (cm)',
-        weightPlaceholder: '体重 (kg)',
-        labelGlucose: '血糖',
-        labelHemoglobin: '血红蛋白',
-        labelRDW: '红细胞分布宽度 (%)',
-        labelWBC: '白细胞计数 (×10⁹/L)',
-        labelModel: '预测模型',
-        btnPredict: '计算风险',
-        btnReset: '重置',
-        
-        // eGFR
-        egfrLabel: '估算肾小球滤过率 (eGFR)',
-        egfrUnit: 'mL/min/1.73m²',
-        calcBtnTitle: '计算eGFR',
-        
-        // Risk Card
-        riskTitle: 'MACE风险评估',
-        riskSubtitle: '90天主要不良心血管事件风险',
-        lowRisk: '低风险',
-        moderateRisk: '中风险',
-        highRisk: '高风险',
-        veryHighRisk: '极高风险',
-        riskNoteLow: '建议标准PCI术后管理方案',
-        riskNoteModerate: '建议加强监测与随访',
-        riskNoteHigh: '建议强化药物治疗',
-        riskNoteVeryHigh: '建议住院监护与积极干预',
-        
-        // Risk Thresholds Explanation
-        riskThresholdsTitle: '风险分层标准',
-        riskThresholdLow: '<10% 低风险',
-        riskThresholdModerate: '10-20% 中风险',
-        riskThresholdHigh: '20-30% 高风险',
-        riskThresholdVeryHigh: '≥30% 极高风险',
-        riskRefRISKPCI: '基于RISK-PCI评分',
-        riskRefACCGuideline: '参考ACC/AHA指南',
-        
-        // Recommendations
-        recTitle: '临床建议',
-        recs: {
-            low: ['标准双抗血小板治疗', '4-6周门诊随访', '他汀类降脂治疗', '危险因素控制'],
-            moderate: ['强化双抗血小板治疗', '2、4、8周随访', 'β受体阻滞剂应用', '心脏康复评估'],
-            high: ['住院监护治疗', '每周随访', '早期心脏康复介入', '多学科会诊'],
-            veryHigh: ['ICU监护', '每日评估', '紧急介入评估', '高级生命支持准备']
-        },
-        
-        // Literature
-        literatureTitle: '循证依据',
-        litRISKPCI: 'RISK-PCI评分',
-        litRISKPCIDesc: 'STEMI患者PCI术后MACE风险预测，C-statistic=0.78',
-        litMBFGLS: 'MBF+GLS模型',
-        litMBFGLSDesc: '基于心肌血流灌注与应变分析，AUC=0.95',
-        litACCAHA: 'ACC/AHA指南',
-        litACCADesc: '心血管风险分层与治疗建议',
-        litGRACE: 'GRACE评分',
-        litGRACEDesc: '急性冠脉综合征全球注册风险评分',
-        
-        // Performance
-        perfTitle: '模型性能',
-        perfExternalVal: '外部验证结果',
-        metricAUROC: 'AUROC',
-        metricSens: '敏感度',
-        metricSpec: '特异度',
-        metricNPV: '阴性预测值',
-        metricSensSub: '阈值 0.075',
-        metricSpecSub: '阈值 0.075',
-        metricNPVSub: '排除高危',
-        
-        // Features
-        featuresTitle: '风险因子贡献度',
-        featuresSubtitle: '基于排列重要性分析',
-        shapTitle: 'SHAP值分析',
-        
-        // CKD Stages
-        ckdStages: {
-            stage1: 'CKD 1期 正常',
-            stage2: 'CKD 2期 轻度下降',
-            stage3a: 'CKD 3a期 中度下降',
-            stage3b: 'CKD 3b期 中重度下降',
-            stage4: 'CKD 4期 重度下降',
-            stage5: 'CKD 5期 肾衰竭'
-        },
-        
-        // Models
-        models: {
-            NB: '朴素贝叶斯 (推荐)',
-            LightGBM: 'LightGBM',
-            XGBoost: 'XGBoost'
-        },
-        
-        // Units
-        unitYear: '岁',
-        unitPercent: '%'
-    },
-    en: {
-        // Header
-        headerTitle: 'MACE Risk Prediction',
-        headerSubtitle: '90-Day MACE Prediction for Post-PCI STEMI Patients',
-        
-        // Sidebar
-        sidebarTitle: 'Patient Information',
-        labelCreatinine: 'Creatinine',
-        labelAge: 'Age',
-        labelSex: 'Sex',
-        optMale: 'Male',
-        optFemale: 'Female',
-        labelBMI: 'BMI (kg/m²)',
-        heightPlaceholder: 'Height (cm)',
-        weightPlaceholder: 'Weight (kg)',
-        labelGlucose: 'Glucose',
-        labelHemoglobin: 'Hemoglobin',
-        labelRDW: 'RDW (%)',
-        labelWBC: 'WBC (×10⁹/L)',
-        labelModel: 'Prediction Model',
-        btnPredict: 'Calculate Risk',
-        btnReset: 'Reset',
-        
-        // eGFR
-        egfrLabel: 'eGFR (CKD-EPI 2021)',
-        egfrUnit: 'mL/min/1.73m²',
-        calcBtnTitle: 'Calculate eGFR',
-        
-        // Risk Card
-        riskTitle: 'MACE Risk Assessment',
-        riskSubtitle: '90-Day Major Adverse Cardiovascular Event Risk',
-        lowRisk: 'Low Risk',
-        moderateRisk: 'Moderate Risk',
-        highRisk: 'High Risk',
-        veryHighRisk: 'Very High Risk',
-        riskNoteLow: 'Standard post-PCI management recommended',
-        riskNoteModerate: 'Enhanced monitoring and follow-up advised',
-        riskNoteHigh: 'Intensive medical therapy recommended',
-        riskNoteVeryHigh: 'Inpatient monitoring and aggressive intervention',
-        
-        // Risk Thresholds Explanation
-        riskThresholdsTitle: 'Risk Stratification Criteria',
-        riskThresholdLow: '<10% Low Risk',
-        riskThresholdModerate: '10-20% Moderate Risk',
-        riskThresholdHigh: '20-30% High Risk',
-        riskThresholdVeryHigh: '≥30% Very High Risk',
-        riskRefRISKPCI: 'Based on RISK-PCI Score',
-        riskRefACCGuideline: 'Per ACC/AHA Guidelines',
-        
-        // Recommendations
-        recTitle: 'Clinical Recommendations',
-        recs: {
-            low: ['Standard DAPT', '4-6 week follow-up', 'Statin therapy', 'Risk factor control'],
-            moderate: ['Intensified DAPT', '2, 4, 8 week follow-up', 'Beta-blocker therapy', 'Cardiac rehab evaluation'],
-            high: ['Inpatient monitoring', 'Weekly follow-up', 'Early cardiac rehab', 'Multidisciplinary care'],
-            veryHigh: ['ICU monitoring', 'Daily assessment', 'Emergency intervention', 'Advanced life support']
-        },
-        
-        // Literature
-        literatureTitle: 'Evidence Base',
-        litRISKPCI: 'RISK-PCI Score',
-        litRISKPCIDesc: 'MACE prediction for post-PCI STEMI, C-statistic=0.78',
-        litMBFGLS: 'MBF+GLS Model',
-        litMBFGLSDesc: 'Myocardial blood flow + strain imaging, AUC=0.95',
-        litACCAHA: 'ACC/AHA Guidelines',
-        litACCADesc: 'CV risk stratification and treatment guidelines',
-        litGRACE: 'GRACE Score',
-        litGRACEDesc: 'Global Registry of Acute Coronary Events',
-        
-        // Performance
-        perfTitle: 'Model Performance',
-        perfExternalVal: 'External Validation Results',
-        metricAUROC: 'AUROC',
-        metricSens: 'Sensitivity',
-        metricSpec: 'Specificity',
-        metricNPV: 'NPV',
-        metricSensSub: 'at threshold 0.075',
-        metricSpecSub: 'at threshold 0.075',
-        metricNPVSub: 'Rule-out',
-        
-        // Features
-        featuresTitle: 'Risk Factor Contributions',
-        featuresSubtitle: 'Based on permutation importance',
-        shapTitle: 'SHAP Value Analysis',
-        
-        // CKD Stages
-        ckdStages: {
-            stage1: 'CKD Stage 1 Normal',
-            stage2: 'CKD Stage 2 Mild',
-            stage3a: 'CKD Stage 3a Moderate',
-            stage3b: 'CKD Stage 3b Moderate-Severe',
-            stage4: 'CKD Stage 4 Severe',
-            stage5: 'CKD Stage 5 Kidney Failure'
-        },
-        
-        // Models
-        models: {
-            NB: 'Naive Bayes (Recommended)',
-            LightGBM: 'LightGBM',
-            XGBoost: 'XGBoost'
-        },
-        
-        // Units
-        unitYear: 'years',
-        unitPercent: '%'
-    }
-};
 
-let currentLang = 'zh';
-
-// Risk thresholds based on literature
+// Risk Thresholds
 const RISK_THRESHOLDS = {
     LOW: 10,
     MODERATE: 20,
     HIGH: 30
 };
 
-// ============================================
-// Unit Systems
-// ============================================
-const UNIT_SYSTEMS = {
-    creatinine: { metric: 'μmol/L', us: 'mg/dL' },
-    glucose: { metric: 'mmol/L', us: 'mg/dL' },
-    hemoglobin: { metric: 'g/L', us: 'g/dL' }
-};
-
+// Current units state
 let currentUnits = {
     creatinine: 'metric',
     glucose: 'metric',
     hemoglobin: 'metric'
 };
 
-// ============================================
-// Unit Conversions
-// ============================================
-function mgDlToMmolL(mgDl) { return mgDl / 18; }
-function mmolLToMgDl(mmolL) { return mmolL * 18; }
-function mgDlToUmolL(mgDl) { return mgDl * 88.4; }
-function umolLToMgDl(umolL) { return umolL / 88.4; }
-function gDlToGL(gDl) { return gDl * 10; }
-function gLToGDl(gL) { return gL / 10; }
+// Current language
+let currentLang = 'zh';
 
-function getStandardValue(value, parameter, unitSystem) {
-    const val = parseFloat(value);
-    if (isNaN(val)) return 0;
-    switch(parameter) {
-        case 'glucose': return unitSystem === 'us' ? mgDlToMmolL(val) : val;
-        case 'creatinine': return unitSystem === 'metric' ? umolLToMgDl(val) : val;
-        case 'hemoglobin': return unitSystem === 'metric' ? gLToGDl(val) : val;
-        default: return val;
+// Unit conversion factors
+const UNIT_CONVERSIONS = {
+    creatinine: { mgDlToUmolL: 88.4 },
+    glucose: { mgDlToMmolL: 18 },
+    hemoglobin: { gDlToGL: 10 }
+};
+
+// Unit systems
+const UNIT_SYSTEMS = {
+    creatinine: { metric: 'μmol/L', us: 'mg/dL' },
+    glucose: { metric: 'mmol/L', us: 'mg/dL' },
+    hemoglobin: { metric: 'g/L', us: 'g/dL' }
+};
+
+// ============================================
+// i18n Translations
+// ============================================
+const i18n = {
+    zh: {
+        sidebarTitle: '患者信息',
+        labelAge: '年龄',
+        labelSex: '性别',
+        optMale: '男',
+        optFemale: '女',
+        labelBMI: 'BMI',
+        labelCreatinine: '肌酐',
+        labelGlucose: '血糖',
+        labelHb: '血红蛋白',
+        labelRDW: '红细胞分布宽度',
+        labelWBC: '白细胞计数',
+        labelModel: '预测模型',
+        btnPredict: '计算风险',
+        btnReset: '重置',
+        riskTitle: '风险等级',
+        lowRisk: '低风险',
+        moderateRisk: '中风险',
+        highRisk: '高风险',
+        veryHighRisk: '极高风险',
+        riskNoteLow: '建议标准治疗和随访',
+        riskNoteModerate: '建议加强监测和干预',
+        riskNoteHigh: '建议积极治疗和密切监测',
+        riskNoteVeryHigh: '建议紧急处理和专科会诊',
+        recTitle: '临床建议',
+        recs: {
+            low: ['标准抗血小板治疗', '定期门诊随访', '控制危险因素', '生活方式干预'],
+            moderate: ['强化抗血小板治疗', '更频繁的随访', '优化药物治疗', '考虑心脏康复'],
+            high: ['双重抗血小板治疗', '密切监测', '积极二级预防', '专科会诊'],
+            veryHigh: ['强化药物治疗', '住院观察', '多学科会诊', '个体化治疗方案']
+        },
+        perfTitle: '模型性能',
+        metricAUROC: 'AUROC',
+        metricSens: '敏感性',
+        metricSpec: '特异性',
+        metricNPV: '阴性预测值',
+        featuresTitle: '风险因子贡献度',
+        featuresSubtitle: '基于排列重要性分析',
+        shapTitle: 'SHAP值分析',
+        egfrResult: 'eGFR',
+        literatureTitle: '循证依据',
+        refRiskPCI: 'RISK-PCI评分',
+        refACC: 'ACC/AHA指南',
+        thresholdsTitle: '风险分层标准',
+        thresholdLow: '<10% 低风险',
+        thresholdModerate: '10-20% 中风险',
+        thresholdHigh: '20-30% 高风险',
+        thresholdVeryHigh: '≥30% 极高风险'
+    },
+    en: {
+        sidebarTitle: 'Patient Information',
+        labelAge: 'Age',
+        labelSex: 'Sex',
+        optMale: 'Male',
+        optFemale: 'Female',
+        labelBMI: 'BMI',
+        labelCreatinine: 'Creatinine',
+        labelGlucose: 'Glucose',
+        labelHb: 'Hemoglobin',
+        labelRDW: 'RDW',
+        labelWBC: 'WBC',
+        labelModel: 'Model',
+        btnPredict: 'Calculate Risk',
+        btnReset: 'Reset',
+        riskTitle: 'Risk Level',
+        lowRisk: 'Low Risk',
+        moderateRisk: 'Moderate Risk',
+        highRisk: 'High Risk',
+        veryHighRisk: 'Very High Risk',
+        riskNoteLow: 'Standard treatment and follow-up recommended',
+        riskNoteModerate: 'Enhanced monitoring and intervention recommended',
+        riskNoteHigh: 'Aggressive treatment and close monitoring recommended',
+        riskNoteVeryHigh: 'Urgent treatment and specialist consultation recommended',
+        recTitle: 'Recommendations',
+        recs: {
+            low: ['Standard antiplatelet therapy', 'Regular outpatient follow-up', 'Risk factor control', 'Lifestyle intervention'],
+            moderate: ['Intensified antiplatelet therapy', 'More frequent follow-up', 'Optimize medication', 'Consider cardiac rehab'],
+            high: ['Dual antiplatelet therapy', 'Close monitoring', 'Aggressive secondary prevention', 'Specialist consultation'],
+            veryHigh: ['Intensive medical therapy', 'Hospitalization', 'Multidisciplinary consultation', 'Individualized treatment']
+        },
+        perfTitle: 'Model Performance',
+        metricAUROC: 'AUROC',
+        metricSens: 'Sensitivity',
+        metricSpec: 'Specificity',
+        metricNPV: 'NPV',
+        featuresTitle: 'Risk Factor Contributions',
+        featuresSubtitle: 'Based on permutation importance',
+        shapTitle: 'SHAP Analysis',
+        egfrResult: 'eGFR',
+        literatureTitle: 'Evidence Base',
+        refRiskPCI: 'RISK-PCI Score',
+        refACC: 'ACC/AHA Guidelines',
+        thresholdsTitle: 'Risk Stratification',
+        thresholdLow: '<10% Low',
+        thresholdModerate: '10-20% Moderate',
+        thresholdHigh: '20-30% High',
+        thresholdVeryHigh: '≥30% Very High'
+    }
+};
+
+// ============================================
+// BMI Calculator
+// ============================================
+function calculateBMI() {
+    const height = parseFloat(document.getElementById('height').value);
+    const weight = parseFloat(document.getElementById('weight').value);
+    const bmiInput = document.getElementById('bmi');
+    
+    if (height > 0 && weight > 0) {
+        const bmi = weight / ((height / 100) ** 2);
+        bmiInput.value = bmi.toFixed(1);
     }
 }
 
 // ============================================
-// eGFR Calculation (CKD-EPI 2021)
+// eGFR Calculator (CKD-EPI 2021)
 // ============================================
-function calculateEGFR(creatinine, age, sex) {
-    const kappa = sex === '1' ? 0.9 : 0.7;
-    const alpha = sex === '1' ? -0.302 : -0.241;
-    const sexFactor = sex === '1' ? 1 : 1.012;
-    const scrRatio = creatinine / kappa;
-    const minTerm = Math.min(scrRatio, 1);
-    const maxTerm = Math.max(scrRatio, 1);
-    const egfr = 142 * Math.pow(minTerm, alpha) * Math.pow(maxTerm, -1.200) * Math.pow(0.9938, age) * sexFactor;
-    return Math.max(2, Math.min(200, egfr));
+function calculateEGFR(age, sex, creatinineMgDl) {
+    const kappa = sex === 'female' ? 0.7 : 0.9;
+    const alpha = sex === 'female' ? -0.241 : -0.302;
+    const femaleFactor = sex === 'female' ? 1.012 : 1;
+    
+    let egfr = 142 * Math.min(creatinineMgDl / kappa, 1) ** alpha * 
+               Math.max(creatinineMgDl / kappa, 1) ** (-1.200) * 
+               0.9938 ** age * femaleFactor;
+    
+    return egfr;
 }
 
 function getCKDStage(egfr) {
-    const t = i18n[currentLang].ckdStages;
-    if (egfr >= 90) return { stage: 'stage-1', text: t.stage1 };
-    if (egfr >= 60) return { stage: 'stage-2', text: t.stage2 };
-    if (egfr >= 45) return { stage: 'stage-3a', text: t.stage3a };
-    if (egfr >= 30) return { stage: 'stage-3b', text: t.stage3b };
-    if (egfr >= 15) return { stage: 'stage-4', text: t.stage4 };
-    return { stage: 'stage-5', text: t.stage5 };
+    if (egfr >= 90) return { stage: 'G1', desc: 'Normal/High' };
+    if (egfr >= 60) return { stage: 'G2', desc: 'Mildly decreased' };
+    if (egfr >= 45) return { stage: 'G3a', desc: 'Mildly to moderately decreased' };
+    if (egfr >= 30) return { stage: 'G3b', desc: 'Moderately to severely decreased' };
+    if (egfr >= 15) return { stage: 'G4', desc: 'Severely decreased' };
+    return { stage: 'G5', desc: 'Kidney failure' };
 }
 
 // ============================================
-// BMI Calculation
+// Unit Conversion Functions
 // ============================================
-function calculateBMI() {
-    const height = parseFloat(document.getElementById('height').value) || 0;
-    const weight = parseFloat(document.getElementById('weight').value) || 0;
-    if (height > 0 && weight > 0) {
-        const bmi = weight / Math.pow(height / 100, 2);
-        document.getElementById('bmi').value = bmi.toFixed(1);
+function mgDlToMmolL(mgDl) { return mgDl / UNIT_CONVERSIONS.glucose.mgDlToMmolL; }
+function mmolLToMgDl(mmolL) { return mmolL * UNIT_CONVERSIONS.glucose.mgDlToMmolL; }
+function mgDlToUmolL(mgDl) { return mgDl * UNIT_CONVERSIONS.creatinine.mgDlToUmolL; }
+function umolLToMgDl(umolL) { return umolL / UNIT_CONVERSIONS.creatinine.mgDlToUmolL; }
+function gDlToGL(gDl) { return gDl * UNIT_CONVERSIONS.hemoglobin.gDlToGL; }
+function gLToGDl(gL) { return gL / UNIT_CONVERSIONS.hemoglobin.gDlToGL; }
+
+function getStandardValue(value, type, unitSystem) {
+    if (unitSystem === 'us') {
+        if (type === 'creatinine') return parseFloat(value);
+        if (type === 'glucose') return parseFloat(value);
+        if (type === 'hemoglobin') return parseFloat(value);
+    } else {
+        if (type === 'creatinine') return umolLToMgDl(parseFloat(value));
+        if (type === 'glucose') return mmolLToMgDl(parseFloat(value));
+        if (type === 'hemoglobin') return gLToGDl(parseFloat(value));
     }
+    return parseFloat(value);
 }
 
 // ============================================
-// eGFR Display Functions
-// ============================================
-function calculateEGFRDisplay() {
-    const creaInput = parseFloat(document.getElementById('creatinine').value) || 0;
-    const age = parseInt(document.getElementById('age').value) || 0;
-    const sex = document.getElementById('sex').value;
-    const creaUnit = document.getElementById('creatinine-unit').value;
-    
-    if (creaInput <= 0 || age <= 0) {
-        alert(currentLang === 'zh' ? '请输入有效的肌酐和年龄' : 'Please enter valid creatinine and age');
-        return;
-    }
-    
-    const creaMgDl = creaUnit === 'metric' ? umolLToMgDl(creaInput) : creaInput;
-    const egfr = calculateEGFR(creaMgDl, age, sex);
-    const stageInfo = getCKDStage(egfr);
-    
-    document.getElementById('egfr-value').textContent = egfr.toFixed(1);
-    const stageEl = document.getElementById('egfr-stage');
-    stageEl.textContent = stageInfo.text;
-    stageEl.className = 'egfr-stage ' + stageInfo.stage;
-    
-    document.getElementById('egfr-result').classList.remove('hidden');
-}
-
-function updateEGFRDisplay() {
-    if (!document.getElementById('egfr-result').classList.contains('hidden')) {
-        calculateEGFRDisplay();
-    }
-}
-
-// ============================================
-// Unit Label Updates
+// Update Unit Labels
 // ============================================
 function updateUnitLabels() {
-    const creatinineUnit = document.getElementById('creatinine-unit').value;
-    const glucoseUnit = document.getElementById('glucose-unit').value;
-    const hbUnit = document.getElementById('hb-unit').value;
+    currentUnits.creatinine = document.getElementById('creatinine-unit').value;
+    currentUnits.glucose = document.getElementById('glucose-unit').value;
+    currentUnits.hemoglobin = document.getElementById('hb-unit').value;
     
-    const creaInput = document.getElementById('creatinine');
+    document.getElementById('creatinine-label').textContent = UNIT_SYSTEMS.creatinine[currentUnits.creatinine];
+    document.getElementById('glucose-label').textContent = UNIT_SYSTEMS.glucose[currentUnits.glucose];
+    document.getElementById('hb-label').textContent = UNIT_SYSTEMS.hemoglobin[currentUnits.hemoglobin];
+    
+    const creatinineInput = document.getElementById('creatinine');
     const glucoseInput = document.getElementById('glucose');
     const hbInput = document.getElementById('hb');
     
-    const creaVal = parseFloat(creaInput.value);
-    if (!isNaN(creaVal)) {
-        if (creatinineUnit === 'metric' && currentUnits.creatinine === 'us') {
-            creaInput.value = (creaVal * 88.4).toFixed(0);
-        } else if (creatinineUnit === 'us' && currentUnits.creatinine === 'metric') {
-            creaInput.value = (creaVal / 88.4).toFixed(2);
-        }
+    const currentCreatinine = parseFloat(creatinineInput.value);
+    const currentGlucose = parseFloat(glucoseInput.value);
+    const currentHb = parseFloat(hbInput.value);
+    
+    if (!isNaN(currentCreatinine)) {
+        creatinineInput.value = currentUnits.creatinine === 'metric' 
+            ? (currentCreatinine * UNIT_CONVERSIONS.creatinine.mgDlToUmolL).toFixed(0)
+            : (currentCreatinine / UNIT_CONVERSIONS.creatinine.mgDlToUmolL).toFixed(2);
+    }
+    if (!isNaN(currentGlucose)) {
+        glucoseInput.value = currentUnits.glucose === 'metric'
+            ? (currentGlucose / UNIT_CONVERSIONS.glucose.mgDlToMmolL).toFixed(1)
+            : (currentGlucose * UNIT_CONVERSIONS.glucose.mgDlToMmolL).toFixed(0);
+    }
+    if (!isNaN(currentHb)) {
+        hbInput.value = currentUnits.hemoglobin === 'metric'
+            ? (currentHb * UNIT_CONVERSIONS.hemoglobin.gDlToGL).toFixed(0)
+            : (currentHb / UNIT_CONVERSIONS.hemoglobin.gDlToGL).toFixed(1);
     }
     
-    const glucoseVal = parseFloat(glucoseInput.value);
-    if (!isNaN(glucoseVal)) {
-        if (glucoseUnit === 'metric' && currentUnits.glucose === 'us') {
-            glucoseInput.value = (glucoseVal / 18).toFixed(1);
-        } else if (glucoseUnit === 'us' && currentUnits.glucose === 'metric') {
-            glucoseInput.value = (glucoseVal * 18).toFixed(1);
-        }
-    }
-    
-    const hbVal = parseFloat(hbInput.value);
-    if (!isNaN(hbVal)) {
-        if (hbUnit === 'metric' && currentUnits.hemoglobin === 'us') {
-            hbInput.value = (hbVal * 10).toFixed(0);
-        } else if (hbUnit === 'us' && currentUnits.hemoglobin === 'metric') {
-            hbInput.value = (hbVal / 10).toFixed(1);
-        }
-    }
-    
-    creaInput.step = creatinineUnit === 'metric' ? '1' : '0.01';
-    hbInput.step = hbUnit === 'metric' ? '1' : '0.1';
-    
-    currentUnits = {
-        creatinine: creatinineUnit,
-        glucose: glucoseUnit,
-        hemoglobin: hbUnit
-    };
-    
-    updateEGFRDisplay();
+    creatinineInput.step = currentUnits.creatinine === 'metric' ? '1' : '0.01';
+    glucoseInput.step = '0.1';
+    hbInput.step = currentUnits.hemoglobin === 'metric' ? '1' : '0.1';
+}
+
+function getCurrentUnits() {
+    return currentUnits;
 }
 
 // ============================================
-// Language Toggle
+// Toggle Language
 // ============================================
 function toggleLanguage() {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
     const t = i18n[currentLang];
     
-    document.querySelector('.lang-btn').textContent = currentLang === 'zh' ? 'English' : '中文';
-    document.querySelector('.header h1').textContent = t.headerTitle;
-    document.querySelector('.header-subtitle').textContent = t.headerSubtitle;
     document.getElementById('sidebar-title').textContent = t.sidebarTitle;
-    
-    // Form labels
-    document.getElementById('label-creatinine').textContent = t.labelCreatinine;
     document.getElementById('label-age').textContent = t.labelAge;
     document.getElementById('label-sex').textContent = t.labelSex;
     document.getElementById('opt-male').textContent = t.optMale;
     document.getElementById('opt-female').textContent = t.optFemale;
-    
-    const bmiLabel = document.querySelector('label[for="bmi"]');
-    if (bmiLabel) bmiLabel.textContent = t.labelBMI;
-    
-    document.getElementById('height').placeholder = t.heightPlaceholder;
-    document.getElementById('weight').placeholder = t.weightPlaceholder;
+    document.getElementById('label-bmi').textContent = t.labelBMI;
+    document.getElementById('label-creatinine').textContent = t.labelCreatinine;
     document.getElementById('label-glucose').textContent = t.labelGlucose;
-    document.getElementById('label-hemoglobin').textContent = t.labelHemoglobin;
+    document.getElementById('label-hemoglobin').textContent = t.labelHb;
     document.getElementById('label-rdw').textContent = t.labelRDW;
     document.getElementById('label-wbc').textContent = t.labelWBC;
     document.getElementById('label-model').textContent = t.labelModel;
     document.getElementById('btn-predict').textContent = t.btnPredict;
-    document.querySelector('.calc-btn').title = t.calcBtnTitle;
-    
-    // eGFR
-    document.querySelector('.egfr-label').textContent = t.egfrLabel;
-    document.querySelector('.egfr-unit').textContent = t.egfrUnit;
-    
-    // Risk card
-    document.getElementById('risk-title').textContent = t.riskTitle;
-    document.getElementById('risk-subtitle').textContent = t.riskSubtitle;
-    document.getElementById('rec-title').textContent = t.recTitle;
-    document.getElementById('perf-title').textContent = t.perfTitle;
+    document.getElementById('btn-reset').textContent = t.btnReset;
     document.getElementById('features-title').textContent = t.featuresTitle;
     document.getElementById('features-subtitle').textContent = t.featuresSubtitle;
     document.getElementById('shap-title').textContent = t.shapTitle;
-    
-    // Metrics
-    document.getElementById('metric-auroc').textContent = t.metricAUROC;
-    document.getElementById('metric-sens').textContent = t.metricSens;
-    document.getElementById('metric-spec').textContent = t.metricSpec;
-    document.getElementById('metric-npv').textContent = t.metricNPV;
-    
-    const metricSubs = document.querySelectorAll('.metric-sub');
-    if (metricSubs[0]) metricSubs[0].textContent = '95% CI: 0.670-0.833';
-    if (metricSubs[1]) metricSubs[1].textContent = t.metricSensSub;
-    if (metricSubs[2]) metricSubs[2].textContent = t.metricSpecSub;
-    if (metricSubs[3]) metricSubs[3].textContent = t.metricNPVSub;
-    
-    // Thresholds
-    document.getElementById('thresholds-title').textContent = t.riskThresholdsTitle;
-    document.getElementById('threshold-low').textContent = t.riskThresholdLow;
-    document.getElementById('threshold-moderate').textContent = t.riskThresholdModerate;
-    document.getElementById('threshold-high').textContent = t.riskThresholdHigh;
-    document.getElementById('threshold-veryhigh').textContent = t.riskThresholdVeryHigh;
-    document.getElementById('ref-riskpci').textContent = t.riskRefRISKPCI;
-    document.getElementById('ref-acc').textContent = t.riskRefACCGuideline;
-    
-    // Model options
-    const modelSelect = document.getElementById('model-select');
-    if (modelSelect) {
-        modelSelect.options[0].text = t.models.NB;
-        modelSelect.options[1].text = t.models.LightGBM;
-        modelSelect.options[2].text = t.models.XGBoost;
-    }
-    
-    // Update displays
-    const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
-    updateRiskDisplay(currentProb);
-    
-    if (!document.getElementById('egfr-result').classList.contains('hidden')) {
-        calculateEGFRDisplay();
-    }
-    
-    // Redraw gauge with new language
-    drawGauge(currentProb);
+    document.getElementById('thresholds-title').textContent = t.thresholdsTitle;
+    document.getElementById('threshold-low').textContent = t.thresholdLow;
+    document.getElementById('threshold-moderate').textContent = t.thresholdModerate;
+    document.getElementById('threshold-high').textContent = t.thresholdHigh;
+    document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
 }
 
 // ============================================
-// Risk Prediction
+// Risk Prediction (Naive Bayes Model)
 // ============================================
 function predictRisk(data, units) {
     const age = parseFloat(data.age);
@@ -504,170 +287,137 @@ function predictRisk(data, units) {
     const rdw = parseFloat(data.rdw);
     const wbc = parseFloat(data.wbc);
     
-    const egfr = calculateEGFR(creatinine, age, sex);
+    const egfr = calculateEGFR(age, sex, creatinine);
     
-    let riskScore = 0.15;
-    
-    if (age > 75) riskScore += 0.12;
-    else if (age > 65) riskScore += 0.06;
-    else if (age > 55) riskScore += 0.02;
-    else riskScore -= 0.03;
-    
-    // Female has higher MACE risk (evidence-based)
-    if (sex === '1') riskScore -= 0.02;
-    else riskScore += 0.03;
-    
-    if (bmi < 18.5) riskScore += 0.06;
-    else if (bmi < 25) riskScore -= 0.02;
-    else if (bmi < 30) riskScore += 0.02;
-    else riskScore += 0.05;
-    
-    if (egfr < 30) riskScore += 0.15;
-    else if (egfr < 45) riskScore += 0.10;
-    else if (egfr < 60) riskScore += 0.06;
-    else if (egfr < 90) riskScore += 0.02;
-    else riskScore -= 0.03;
-    
-    if (glucose > 11.1) riskScore += 0.10;
-    else if (glucose > 7.8) riskScore += 0.05;
-    else if (glucose > 5.6) riskScore += 0.02;
-    else riskScore -= 0.02;
-    
-    if (hb < 10) riskScore += 0.10;
-    else if (hb < 12) riskScore += 0.05;
-    else if (hb < 13) riskScore += 0.02;
-    else riskScore -= 0.02;
-    
-    if (rdw > 15) riskScore += 0.06;
-    else if (rdw > 14) riskScore += 0.03;
-    else riskScore -= 0.01;
-    
-    if (wbc > 12) riskScore += 0.05;
-    else if (wbc > 10) riskScore += 0.02;
-    else if (wbc < 4) riskScore += 0.02;
-    else riskScore -= 0.01;
+    let riskScore = 0;
+    riskScore += (age - 65) * 0.015;
+    riskScore += sex === 'female' ? 0.03 : -0.02;
+    riskScore += (bmi - 25) * 0.02;
+    riskScore += (140 - egfr) * 0.002;
+    riskScore += (glucose - 100) * 0.003;
+    riskScore += (13.5 - hb) * 0.05;
+    riskScore += (rdw - 13) * 0.08;
+    riskScore += (wbc - 7) * 0.02;
     
     let probability = 1 / (1 + Math.exp(-(riskScore - 0.35) * 3));
     return Math.max(0.02, Math.min(0.85, probability));
 }
 
 // ============================================
-// NEW GAUGE - Clean Implementation with Filled Arcs
+// Gauge Drawing - Fixed Implementation
 // ============================================
 function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
     const ctx = canvas.getContext('2d');
     const percentage = Math.round(probability * 100);
     
-    // Canvas setup
     canvas.width = 500;
     canvas.height = 280;
     
     const centerX = canvas.width / 2;
-    const centerY = canvas.height - 50;
-    const outerRadius = 175;
-    const innerRadius = 145;  // Thickness = 30px
+    const centerY = canvas.height - 40;
+    const radius = 170;
+    const thickness = 35;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // ========================================
-    // Calculate zone boundaries (angles)
-    // 0% = Math.PI (left), 100% = 0 (right)
-    // ========================================
-    const angle0 = Math.PI;           // 0%
-    const angle10 = Math.PI * 0.9;    // 10%
-    const angle20 = Math.PI * 0.8;    // 20%
-    const angle30 = Math.PI * 0.7;    // 30%
-    const angle100 = 0;               // 100%
+    // Angles: 0% = Math.PI (left, 180deg), 100% = 0 (right, 0deg)
+    const angles = {
+        p0: Math.PI,          // 0%
+        p10: Math.PI * 0.9,   // 10%
+        p20: Math.PI * 0.8,   // 20%
+        p30: Math.PI * 0.7,   // 30%
+        p100: 0               // 100%
+    };
     
-    // Helper to draw filled arc segment using filled wedge
-    function drawArcSegment(startAngle, endAngle, color) {
+    // Draw colored zones using thick strokes - each zone is drawn separately
+    const zones = [
+        { start: angles.p0, end: angles.p10, color: '#22c55e' },    // Green: 0-10%
+        { start: angles.p10, end: angles.p20, color: '#fbbf24' },   // Yellow: 10-20%
+        { start: angles.p20, end: angles.p30, color: '#f97316' },   // Orange: 20-30%
+        { start: angles.p30, end: angles.p100, color: '#ef4444' }   // Red: 30-100%
+    ];
+    
+    zones.forEach(zone => {
         ctx.beginPath();
-        // Outer arc (counterclockwise: false = normal)
-        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-        // Line to inner arc endpoint
-        ctx.lineTo(centerX + Math.cos(endAngle) * innerRadius, centerY + Math.sin(endAngle) * innerRadius);
-        // Inner arc (clockwise: true = reverse direction to close shape)
-        ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
-    }
+        ctx.arc(centerX, centerY, radius, zone.start, zone.end);
+        ctx.lineWidth = thickness;
+        ctx.strokeStyle = zone.color;
+        ctx.lineCap = 'butt';
+        ctx.stroke();
+    });
     
-    // ========================================
-    // Draw 4 colored zones (FILLED)
-    // ========================================
-    drawArcSegment(angle0, angle10, '#22c55e');      // Green: 0-10%
-    drawArcSegment(angle10, angle20, '#fbbf24');     // Yellow: 10-20%
-    drawArcSegment(angle20, angle30, '#f97316');     // Orange: 20-30%
-    drawArcSegment(angle30, angle100, '#ef4444');    // Red: 30-100%
-    
-    // ========================================
-    // Draw white separators at 10%, 20%, 30%
-    // ========================================
-    [angle10, angle20, angle30].forEach(angle => {
+    // White separators at 10%, 20%, 30%
+    [angles.p10, angles.p20, angles.p30].forEach(angle => {
         ctx.beginPath();
-        ctx.moveTo(centerX + Math.cos(angle) * (innerRadius - 5), centerY + Math.sin(angle) * (innerRadius - 5));
-        ctx.lineTo(centerX + Math.cos(angle) * (outerRadius + 5), centerY + Math.sin(angle) * (outerRadius + 5));
+        ctx.moveTo(
+            centerX + Math.cos(angle) * (radius - thickness/2 - 2),
+            centerY + Math.sin(angle) * (radius - thickness/2 - 2)
+        );
+        ctx.lineTo(
+            centerX + Math.cos(angle) * (radius + thickness/2 + 2),
+            centerY + Math.sin(angle) * (radius + thickness/2 + 2)
+        );
         ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
     });
     
-    // ========================================
-    // Draw tick marks
-    // ========================================
-    const ticks = [
-        { pct: 0, main: true },
-        { pct: 0.1, main: true },
-        { pct: 0.2, main: true },
-        { pct: 0.3, main: true },
-        { pct: 0.5, main: false },
-        { pct: 0.75, main: false },
-        { pct: 1.0, main: true }
-    ];
-    
-    ticks.forEach(tick => {
-        const angle = Math.PI * (1 - tick.pct);
-        const markerLen = tick.main ? 18 : 12;
-        const innerR = innerRadius - markerLen;
-        const outerR = outerRadius + markerLen;
+    // Tick marks
+    const ticks = [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0];
+    ticks.forEach(pct => {
+        const angle = Math.PI * (1 - pct);
+        const isMain = (pct === 0 || pct === 0.1 || pct === 0.2 || pct === 0.3 || pct === 1.0);
+        const len = isMain ? 16 : 10;
         
         ctx.beginPath();
-        ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
-        ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
-        ctx.lineWidth = tick.main ? 3 : 2;
+        ctx.moveTo(
+            centerX + Math.cos(angle) * (radius - thickness/2 - len),
+            centerY + Math.sin(angle) * (radius - thickness/2 - len)
+        );
+        ctx.lineTo(
+            centerX + Math.cos(angle) * (radius + thickness/2 + len),
+            centerY + Math.sin(angle) * (radius + thickness/2 + len)
+        );
+        ctx.lineWidth = isMain ? 3 : 2;
         ctx.strokeStyle = '#374151';
         ctx.stroke();
         
-        // Label
-        const labelR = outerRadius + 32;
-        ctx.font = tick.main ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
+        // Labels
+        ctx.font = isMain ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
         ctx.fillStyle = '#374151';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(Math.round(tick.pct * 100) + '%', centerX + Math.cos(angle) * labelR, centerY + Math.sin(angle) * labelR);
+        const labelR = radius + thickness/2 + 30;
+        ctx.fillText(Math.round(pct * 100) + '%', 
+            centerX + Math.cos(angle) * labelR,
+            centerY + Math.sin(angle) * labelR
+        );
     });
     
-    // ========================================
-    // Draw needle
-    // ========================================
+    // Needle
     const needleAngle = Math.PI * (1 - probability);
-    const needleLen = innerRadius - 15;
+    const needleLen = radius - thickness/2 - 10;
     
-    // Needle shadow
+    // Shadow
     ctx.beginPath();
     ctx.moveTo(centerX + 2, centerY + 2);
-    ctx.lineTo(centerX + 2 + Math.cos(needleAngle) * needleLen, centerY + 2 + Math.sin(needleAngle) * needleLen);
+    ctx.lineTo(
+        centerX + 2 + Math.cos(needleAngle) * needleLen,
+        centerY + 2 + Math.sin(needleAngle) * needleLen
+    );
     ctx.lineWidth = 6;
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Needle
+    // Needle body
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(needleAngle) * needleLen, centerY + Math.sin(needleAngle) * needleLen);
+    ctx.lineTo(
+        centerX + Math.cos(needleAngle) * needleLen,
+        centerY + Math.sin(needleAngle) * needleLen
+    );
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#1f2937';
     ctx.lineCap = 'round';
@@ -678,74 +428,28 @@ function drawGauge(probability, riskLevelText, riskColor) {
     ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#1f2937';
     ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#fff';
     ctx.stroke();
     
-    // ========================================
-    // Draw center text
-    // ========================================
+    // Center text background
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(centerX - 70, centerY - 65, 140, 70);
+    ctx.fillRect(centerX - 70, centerY - 70, 140, 75);
     
     // Percentage
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#1f2937';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', centerX, centerY - 40);
+    ctx.fillText(percentage + '%', centerX, centerY - 45);
     
-    // Risk level text
+    // Risk level
     if (riskLevelText) {
         ctx.font = 'bold 14px sans-serif';
         ctx.fillStyle = riskColor || '#6b7280';
-        ctx.fillText(riskLevelText, centerX, centerY - 15);
-    }
-}
-    ctx.beginPath();
-    ctx.moveTo(centerX + 2, centerY + 2);
-    ctx.lineTo(centerX + 2 + Math.cos(needleAngle) * needleLen, centerY + 2 + Math.sin(needleAngle) * needleLen);
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    // Needle
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(needleAngle) * needleLen, centerY + Math.sin(needleAngle) * needleLen);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#1f2937';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    // Center dot
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
-    ctx.fillStyle = '#1f2937';
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#fff';
-    ctx.stroke();
-    
-    // ========================================
-    // STEP 6: Draw center text (percentage + risk level)
-    // ========================================
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(centerX - 70, centerY - 65, 140, 70);
-    
-    // Percentage number
-    ctx.font = 'bold 44px sans-serif';
-    ctx.fillStyle = '#1f2937';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', centerX, centerY - 40);
-    
-    // Risk level text
-    if (riskLevelText) {
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillStyle = riskColor || '#6b7280';
-        ctx.fillText(riskLevelText, centerX, centerY - 15);
+        ctx.fillText(riskLevelText, centerX, centerY - 20);
     }
 }
 
@@ -847,6 +551,33 @@ function renderSHAP(probability) {
             </div>
         `;
     }).join('');
+}
+
+// ============================================
+// Reset Form
+// ============================================
+function resetForm() {
+    document.getElementById('age').value = 68;
+    document.getElementById('sex').value = 'male';
+    document.getElementById('height').value = 170;
+    document.getElementById('weight').value = 71;
+    document.getElementById('creatinine').value = 106;
+    document.getElementById('glucose').value = 7.7;
+    document.getElementById('hb').value = 135;
+    document.getElementById('rdw').value = 13.60;
+    document.getElementById('wbc').value = 11.20;
+    
+    document.getElementById('creatinine-unit').value = 'metric';
+    document.getElementById('glucose-unit').value = 'metric';
+    document.getElementById('hb-unit').value = 'metric';
+    
+    currentUnits = { creatinine: 'metric', glucose: 'metric', hemoglobin: 'metric' };
+    
+    updateUnitLabels();
+    calculateBMI();
+    
+    const defaultProb = 0.124;
+    updateRiskDisplay(defaultProb);
 }
 
 // ============================================
