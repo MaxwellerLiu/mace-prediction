@@ -758,7 +758,7 @@ function updateRiskDisplay(probability) {
     renderSHAP(probability);
 
     // Scroll to gauge to show result
-    document.querySelector('.gauge-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.querySelector('.gauge-with-thresholds').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ============================================
