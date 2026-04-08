@@ -36,6 +36,9 @@ const i18n = {
         metricSens: '敏感度',
         metricSpec: '特异度',
         metricNPV: 'NPV',
+        metricSensSub: '阈值 0.075',
+        metricSpecSub: '阈值 0.075',
+        metricNPVSub: '排除置信度',
         calcBtnTitle: '计算eGFR',
         lowRisk: '低风险',
         moderateRisk: '中风险',
@@ -45,10 +48,29 @@ const i18n = {
         riskNoteModerate: '建议加强监测',
         riskNoteHigh: '需要强化管理',
         riskNoteVeryHigh: '需要紧急干预',
+        gaugeLabel0: '0%',
+        gaugeLabel25: '25%',
+        gaugeLabel50: '50%',
+        gaugeLabel75: '75%',
+        gaugeLabel100: '100%',
+        riskSubtitle: '90天MACE概率',
         recs: {
-            low: ['标准PCI术后出院方案', '4-6周后常规随访', '继续处方药物', '生活方式指导', '低风险 (12.4%) - 标准护理'],
+            low: ['标准PCI术后出院方案', '4-6周后常规随访', '继续处方药物', '生活方式指导', '低风险 - 标准护理'],
             moderate: ['建议加强监测', '2、4、8周随访', '考虑强化抗血小板治疗', '生活方式指导', '中风险 - 加强监测'],
             high: ['需要强化管理', '每1-2周随访', '考虑心脏康复转诊', '强化药物治疗', '高风险 - 强化管理']
+        },
+        ckdStages: {
+            stage1: 'CKD 1期 (正常/高)',
+            stage2: 'CKD 2期 (轻度)',
+            stage3a: 'CKD 3a期 (中度)',
+            stage3b: 'CKD 3b期 (中重度)',
+            stage4: 'CKD 4期 (重度)',
+            stage5: 'CKD 5期 (肾衰竭)'
+        },
+        models: {
+            NB: '朴素贝叶斯 (NB) ★ 最佳',
+            LightGBM: 'LightGBM',
+            XGBoost: 'XGBoost'
         }
     },
     en: {
@@ -81,6 +103,9 @@ const i18n = {
         metricSens: 'Sensitivity',
         metricSpec: 'Specificity',
         metricNPV: 'NPV',
+        metricSensSub: 'at threshold 0.075',
+        metricSpecSub: 'at threshold 0.075',
+        metricNPVSub: 'Rule-out confidence',
         calcBtnTitle: 'Calculate eGFR',
         lowRisk: 'Low Risk',
         moderateRisk: 'Moderate Risk',
@@ -90,10 +115,29 @@ const i18n = {
         riskNoteModerate: 'Enhanced monitoring recommended',
         riskNoteHigh: 'Intensive management required',
         riskNoteVeryHigh: 'Urgent intervention needed',
+        gaugeLabel0: '0%',
+        gaugeLabel25: '25%',
+        gaugeLabel50: '50%',
+        gaugeLabel75: '75%',
+        gaugeLabel100: '100%',
+        riskSubtitle: '90-Day MACE Probability',
         recs: {
-            low: ['Standard post-PCI discharge protocol', 'Routine follow-up (4-6 weeks)', 'Continue prescribed medications', 'Lifestyle counseling', 'Low MACE risk (12.4%) - standard care'],
+            low: ['Standard post-PCI discharge protocol', 'Routine follow-up (4-6 weeks)', 'Continue prescribed medications', 'Lifestyle counseling', 'Low risk - standard care'],
             moderate: ['Enhanced monitoring recommended', 'Follow-up at 2, 4, and 8 weeks', 'Consider intensifying antiplatelet therapy', 'Lifestyle counseling', 'Moderate risk - enhanced monitoring'],
             high: ['Intensive management required', 'Follow-up every 1-2 weeks', 'Consider cardiac rehabilitation referral', 'Intensified medical therapy', 'High risk - intensive management']
+        },
+        ckdStages: {
+            stage1: 'CKD Stage 1 (Normal/High)',
+            stage2: 'CKD Stage 2 (Mild)',
+            stage3a: 'CKD Stage 3a (Moderate)',
+            stage3b: 'CKD Stage 3b (Moderate-Severe)',
+            stage4: 'CKD Stage 4 (Severe)',
+            stage5: 'CKD Stage 5 (Kidney Failure)'
+        },
+        models: {
+            NB: 'Naive Bayes (NB) ★ Best',
+            LightGBM: 'LightGBM',
+            XGBoost: 'XGBoost'
         }
     }
 };
@@ -151,12 +195,13 @@ function calculateEGFR(creatinine, age, sex) {
 }
 
 function getCKDStage(egfr) {
-    if (egfr >= 90) return { stage: 'stage-1', text: currentLang === 'zh' ? 'CKD 1期 (正常/高)' : 'CKD Stage 1 (Normal/High)' };
-    if (egfr >= 60) return { stage: 'stage-2', text: currentLang === 'zh' ? 'CKD 2期 (轻度)' : 'CKD Stage 2 (Mild)' };
-    if (egfr >= 45) return { stage: 'stage-3a', text: currentLang === 'zh' ? 'CKD 3a期 (中度)' : 'CKD Stage 3a (Moderate)' };
-    if (egfr >= 30) return { stage: 'stage-3b', text: currentLang === 'zh' ? 'CKD 3b期 (中重度)' : 'CKD Stage 3b (Moderate-Severe)' };
-    if (egfr >= 15) return { stage: 'stage-4', text: currentLang === 'zh' ? 'CKD 4期 (重度)' : 'CKD Stage 4 (Severe)' };
-    return { stage: 'stage-5', text: currentLang === 'zh' ? 'CKD 5期 (肾衰竭)' : 'CKD Stage 5 (Kidney Failure)' };
+    const t = i18n[currentLang].ckdStages;
+    if (egfr >= 90) return { stage: 'stage-1', text: t.stage1 };
+    if (egfr >= 60) return { stage: 'stage-2', text: t.stage2 };
+    if (egfr >= 45) return { stage: 'stage-3a', text: t.stage3a };
+    if (egfr >= 30) return { stage: 'stage-3b', text: t.stage3b };
+    if (egfr >= 15) return { stage: 'stage-4', text: t.stage4 };
+    return { stage: 'stage-5', text: t.stage5 };
 }
 
 // ============================================
@@ -273,7 +318,11 @@ function toggleLanguage() {
     document.getElementById('label-sex').textContent = t.labelSex;
     document.getElementById('opt-male').textContent = t.optMale;
     document.getElementById('opt-female').textContent = t.optFemale;
-    document.querySelector('label[for="bmi"]').textContent = t.labelBMI;
+    
+    // BMI label
+    const bmiLabel = document.querySelector('label[for="bmi"]');
+    if (bmiLabel) bmiLabel.textContent = t.labelBMI;
+    
     document.getElementById('height').placeholder = t.heightPlaceholder;
     document.getElementById('weight').placeholder = t.weightPlaceholder;
     document.getElementById('label-glucose').textContent = t.labelGlucose;
@@ -299,8 +348,41 @@ function toggleLanguage() {
     document.getElementById('metric-spec').textContent = t.metricSpec;
     document.getElementById('metric-npv').textContent = t.metricNPV;
     
+    // Update metric subtitles
+    const metricSubs = document.querySelectorAll('.metric-sub');
+    if (metricSubs[0]) metricSubs[0].textContent = '95% CI: 0.670-0.833';
+    if (metricSubs[1]) metricSubs[1].textContent = t.metricSensSub;
+    if (metricSubs[2]) metricSubs[2].textContent = t.metricSpecSub;
+    if (metricSubs[3]) metricSubs[3].textContent = t.metricNPVSub;
+    
+    // Update gauge labels
+    const gaugeLabels = document.querySelectorAll('.gauge-labels span');
+    if (gaugeLabels[0]) gaugeLabels[0].textContent = t.gaugeLabel0;
+    if (gaugeLabels[1]) gaugeLabels[1].textContent = t.gaugeLabel25;
+    if (gaugeLabels[2]) gaugeLabels[2].textContent = t.gaugeLabel50;
+    if (gaugeLabels[3]) gaugeLabels[3].textContent = t.gaugeLabel75;
+    if (gaugeLabels[4]) gaugeLabels[4].textContent = t.gaugeLabel100;
+    
+    // Update risk subtitle
+    const riskSubtitle = document.getElementById('risk-subtitle');
+    if (riskSubtitle) riskSubtitle.textContent = t.riskSubtitle;
+    
+    // Update model options
+    const modelSelect = document.getElementById('model-select');
+    if (modelSelect) {
+        modelSelect.options[0].text = t.models.NB;
+        modelSelect.options[1].text = t.models.LightGBM;
+        modelSelect.options[2].text = t.models.XGBoost;
+    }
+    
     // Update current display
-    updateRiskDisplay();
+    const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
+    updateRiskDisplay(currentProb);
+    
+    // Update eGFR display if visible
+    if (!document.getElementById('egfr-result').classList.contains('hidden')) {
+        calculateEGFRDisplay();
+    }
 }
 
 // ============================================
@@ -325,8 +407,8 @@ function predictRisk(data, units) {
     else if (age > 55) riskScore += 0.02;
     else riskScore -= 0.03;
     
-    if (sex === '1') riskScore += 0.03;
-    else riskScore -= 0.02;
+    if (sex === '1') riskScore -= 0.02;  // Male - lower risk
+    else riskScore += 0.03;  // Female - higher risk (evidence-based)
     
     if (bmi < 18.5) riskScore += 0.06;
     else if (bmi < 25) riskScore -= 0.02;
@@ -374,66 +456,84 @@ function drawGauge(probability) {
     canvas.height = 220;
     
     const centerX = canvas.width / 2;
-    const centerY = canvas.height - 40;
-    const radius = 140;
-    const lineWidth = 20;
+    const centerY = canvas.height - 30;
+    const radius = 130;
+    const lineWidth = 24;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background arc
+    // Background arc (full semicircle from left to right)
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, 0);
     ctx.lineWidth = lineWidth;
     ctx.strokeStyle = '#e5e7eb';
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Colored segments
-    const lowEnd = Math.PI * 0.9;
-    const moderateEnd = Math.PI * 0.8;
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, lowEnd);
-    ctx.strokeStyle = '#10b981';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, lowEnd, moderateEnd);
-    ctx.strokeStyle = '#f59e0b';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, moderateEnd, 0);
-    ctx.strokeStyle = '#ef4444';
-    ctx.stroke();
-    
-    // Needle
-    const needleAngle = Math.PI * (1 - probability);
-    const needleLength = radius - 10;
-    
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + Math.cos(needleAngle) * needleLength, centerY + Math.sin(needleAngle) * needleLength);
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#374151';
     ctx.lineCap = 'round';
     ctx.stroke();
     
+    // Calculate segment positions
+    // Math.PI = left (180°), 0 = right (0°), 0.5*Math.PI = top (90°)
+    // Risk zones: 0-30% green, 30-50% yellow, 50-70% orange, 70-100% red
+    const greenEnd = Math.PI * 0.7;   // 30% = 126°
+    const yellowEnd = Math.PI * 0.5;  // 50% = 90°
+    const orangeEnd = Math.PI * 0.3;  // 70% = 54°
+    
+    // Green zone (low risk: 0-30%)
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 10, 0, Math.PI * 2);
-    ctx.fillStyle = '#374151';
+    ctx.arc(centerX, centerY, radius, Math.PI, greenEnd);
+    ctx.strokeStyle = '#10b981';
+    ctx.stroke();
+    
+    // Yellow zone (moderate risk: 30-50%)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, greenEnd, yellowEnd);
+    ctx.strokeStyle = '#f59e0b';
+    ctx.stroke();
+    
+    // Orange zone (high risk: 50-70%)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, yellowEnd, orangeEnd);
+    ctx.strokeStyle = '#f97316';
+    ctx.stroke();
+    
+    // Red zone (very high risk: 70-100%)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, orangeEnd, 0);
+    ctx.strokeStyle = '#ef4444';
+    ctx.stroke();
+    
+    // Needle - 0% at left (Math.PI), 100% at right (0)
+    // Map probability (0-1) to angle (Math.PI to 0)
+    const needleAngle = Math.PI * (1 - probability);
+    const needleLength = radius - 15;
+    
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+        centerX + Math.cos(needleAngle) * needleLength,
+        centerY + Math.sin(needleAngle) * needleLength
+    );
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Needle center dot
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#1f2937';
     ctx.fill();
     
     // Center percentage
-    ctx.font = 'bold 48px sans-serif';
+    ctx.font = 'bold 40px sans-serif';
     ctx.fillStyle = '#374151';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', centerX, centerY - 20);
+    ctx.fillText(percentage + '%', centerX, centerY - 15);
     
-    ctx.font = '14px sans-serif';
+    ctx.font = '13px sans-serif';
     ctx.fillStyle = '#6b7280';
-    ctx.fillText('90-Day MACE Risk', centerX, centerY + 15);
+    const riskText = currentLang === 'zh' ? '90天MACE风险' : '90-Day MACE Risk';
+    ctx.fillText(riskText, centerX, centerY + 15);
 }
 
 // ============================================
@@ -484,7 +584,7 @@ function updateRiskDisplay(probability) {
     // Update recommendations
     const icons = ['🏥', '📅', '💊', '🥗', '✓'];
     recList.innerHTML = recs.map((rec, i) => 
-        `<li><span class="rec-icon">${icons[i]}</span><span>${rec.replace('12.4%', percentage + '%')}</span></li>`
+        `<li><span class="rec-icon">${icons[i]}</span><span>${rec.replace(/\d+\.\d+%|\d+%/, percentage + '%')}</span></li>`
     ).join('');
     
     drawGauge(probability);
