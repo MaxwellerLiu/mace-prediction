@@ -49,6 +49,26 @@ body {
 .header h1 { font-size: 1rem; font-weight: 600; }
 .header-meta { font-size: 0.75rem; opacity: 0.9; }
 
+/* Language Switch Button */
+.lang-switch-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lang-switch-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Gauge level - very high */
+.gauge-level.very-high { background: #fee2e2; color: #7f1d1d; }
+
 /* Main */
 .main { 
     flex: 1;
@@ -299,6 +319,143 @@ body {
     color: var(--gray-500);
     font-size: 0.75rem;
     width: 40px;
+}
+
+/* SHAP Waterfall Styles */
+.shap-container {
+    padding: 12px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+}
+
+.shap-base-value,
+.shap-final-value {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 8px;
+}
+
+.shap-final-value {
+    margin-top: 8px;
+    margin-bottom: 0;
+    background: #eff6ff;
+    border-color: var(--primary);
+}
+
+.shap-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.shap-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--gray-800);
+}
+
+.shap-waterfall {
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-200);
+    padding: 8px 12px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.shap-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: 0.8rem;
+}
+
+.shap-row:last-child {
+    border-bottom: none;
+}
+
+.shap-feature-name {
+    width: 90px;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.shap-feature-value {
+    width: 60px;
+    color: var(--gray-400);
+    font-size: 0.75rem;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.shap-bar-container {
+    flex: 1;
+    height: 20px;
+    position: relative;
+    background: var(--gray-100);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.shap-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    min-width: 2px;
+}
+
+.shap-bar.positive {
+    background: linear-gradient(90deg, #f87171, #ef4444);
+}
+
+.shap-bar.negative {
+    background: linear-gradient(90deg, #60a5fa, #3b82f6);
+    justify-content: flex-start;
+    padding-left: 6px;
+}
+
+.shap-bar-label {
+    position: absolute;
+    right: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.shap-legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.shap-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.shap-legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
 }
 
 /* Responsive */

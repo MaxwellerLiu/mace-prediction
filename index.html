@@ -8,8 +8,10 @@
 </head>
 <body>
     <header class="header">
-        <h1>MACE Risk Prediction</h1>
-        <span class="header-meta">90-Day | NB Model | Threshold 15%</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <h1>MACE Risk Prediction</h1>
+            <span class="header-meta">90-Day | NB Model | Threshold 10%/20%</span>
+        </div>
     </header>
 
     <div class="main">
@@ -35,23 +37,52 @@
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label>BMI (kg/m²)</label>
-                                <input type="number" id="bmi" step="0.1" value="24.6" required>
+                                <label>Height (cm)</label>
+                                <input type="number" id="height" min="100" max="250" value="170" required>
                             </div>
                             <div class="form-group">
-                                <label>Creatinine (mg/dL)</label>
-                                <input type="number" id="creatinine" step="0.01" value="1.20" required>
+                                <label>Weight (kg)</label>
+                                <input type="number" id="weight" min="30" max="200" step="0.1" value="71" required>
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Glucose (mg/dL)</label>
-                                <input type="number" id="glucose" step="0.1" value="138.20" required>
+                                <label>BMI (kg/m²)</label>
+                                <input type="number" id="bmi" step="0.1" value="24.6" readonly style="background:#f8fafc;">
                             </div>
                             <div class="form-group">
-                                <label>Hemoglobin (g/dL)</label>
-                                <input type="number" id="hb" step="0.1" value="13.50" required>
+                                <label style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span id="creatinine-label">Creatinine (μmol/L)</span>
+                                    <select id="creatinine-unit" class="unit-select" onchange="updateUnitLabels()">
+                                        <option value="metric" selected>中国单位 (μmol/L)</option>
+                                        <option value="us">国际单位 (mg/dL)</option>
+                                    </select>
+                                </label>
+                                <input type="number" id="creatinine" step="1" value="106" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span id="glucose-label">Glucose (mmol/L)</span>
+                                    <select id="glucose-unit" class="unit-select" onchange="updateUnitLabels()">
+                                        <option value="metric" selected>中国单位 (mmol/L)</option>
+                                        <option value="us">国际单位 (mg/dL)</option>
+                                    </select>
+                                </label>
+                                <input type="number" id="glucose" step="0.1" value="7.7" required>
+                            </div>
+                            <div class="form-group">
+                                <label style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span id="hb-label">Hemoglobin (g/L)</span>
+                                    <select id="hb-unit" class="unit-select" onchange="updateUnitLabels()">
+                                        <option value="metric" selected>中国单位 (g/L)</option>
+                                        <option value="us">国际单位 (g/dL)</option>
+                                    </select>
+                                </label>
+                                <input type="number" id="hb" step="1" value="135" required>
                             </div>
                         </div>
                         
@@ -100,7 +131,7 @@
                             <div class="gauge-result">
                                 <div id="gauge-percentage" class="gauge-percentage low">12.4%</div>
                                 <div id="gauge-level" class="gauge-level low">✓ Low Risk</div>
-                                <div class="gauge-threshold">Threshold: 15% | NB Model</div>
+                                <div class="gauge-threshold">Threshold: 10%/20%/30% | NB Model</div>
                             </div>
                         </div>
                     </div>
@@ -152,6 +183,36 @@
                                 <td class="feature-value">-0.002</td>
                             </tr>
                         </table>
+                    </div>
+                </div>
+
+                <!-- SHAP Individual Explanation -->
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="card-header">🧬 SHAP Individual Explanation</div>
+                    <div class="card-body">
+                        <div class="shap-container">
+                            <div class="shap-base-value">
+                                <span class="shap-label">Base Value (Avg Risk)</span>
+                                <span class="shap-value" id="shap-base">0.18</span>
+                            </div>
+                            <div class="shap-waterfall" id="shap-waterfall">
+                                <!-- SHAP bars will be rendered here -->
+                            </div>
+                            <div class="shap-final-value">
+                                <span class="shap-label">Final Prediction</span>
+                                <span class="shap-value" id="shap-final">0.124</span>
+                            </div>
+                            <div class="shap-legend">
+                                <div class="shap-legend-item">
+                                    <span class="shap-legend-color" style="background: #ef4444;"></span>
+                                    <span>Increases Risk</span>
+                                </div>
+                                <div class="shap-legend-item">
+                                    <span class="shap-legend-color" style="background: #3b82f6;"></span>
+                                    <span>Decreases Risk</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
