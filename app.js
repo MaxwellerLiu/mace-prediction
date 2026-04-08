@@ -569,9 +569,6 @@ function drawGauge(probability) {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Calculate segment positions based on ACTUAL risk thresholds
-    // 0% = Math.PI (left), 100% = 0 (right)
-    // 
     // Color zones proportional to risk ranges:
     // - Green: 0-10%  -> angle Math.PI to Math.PI*0.9
     // - Yellow: 10-20% -> angle Math.PI*0.9 to Math.PI*0.8  
@@ -582,7 +579,7 @@ function drawGauge(probability) {
     const moderateEnd = Math.PI * 0.8;   // 20%
     const highEnd = Math.PI * 0.7;       // 30%
     
-    // Background arc (gray base)
+    // Draw full background first
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, 0);
     ctx.lineWidth = lineWidth;
@@ -590,48 +587,31 @@ function drawGauge(probability) {
     ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // Draw risk zones with EXACT colors matching thresholds
-    // Low risk zone (0-10%) - Green
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, lowEnd);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#22c55e';  // 明亮的绿色
-    ctx.lineCap = 'butt';
-    ctx.stroke();
+    // Draw colored zones
+    const zones = [
+        { start: Math.PI, end: lowEnd, color: '#16a34a' },      // Green 0-10%
+        { start: lowEnd, end: moderateEnd, color: '#facc15' },  // Yellow 10-20%
+        { start: moderateEnd, end: highEnd, color: '#f97316' }, // Orange 20-30%
+        { start: highEnd, end: 0, color: '#dc2626' }            // Red 30-100%
+    ];
     
-    // Moderate risk zone (10-20%) - Yellow
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, lowEnd, moderateEnd);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#eab308';  // 金黄色
-    ctx.lineCap = 'butt';
-    ctx.stroke();
+    zones.forEach(zone => {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, zone.start, zone.end);
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = zone.color;
+        ctx.lineCap = 'butt';
+        ctx.stroke();
+    });
     
-    // High risk zone (20-30%) - Orange
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, moderateEnd, highEnd);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#f97316';  // 橙色
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Very high risk zone (30-100%) - Red
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, highEnd, 0);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#ef4444';  // 鲜红色
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Draw white separator lines at thresholds
-    const separatorAngles = [lowEnd, moderateEnd, highEnd];
-    separatorAngles.forEach(angle => {
-        const sepInnerR = radius - lineWidth/2 - 2;
-        const sepOuterR = radius + lineWidth/2 + 2;
+    // Draw white separator lines at thresholds (10%, 20%, 30%)
+    [lowEnd, moderateEnd, highEnd].forEach(angle => {
+        const sepInnerR = radius - lineWidth/2 - 3;
+        const sepOuterR = radius + lineWidth/2 + 3;
         ctx.beginPath();
         ctx.moveTo(centerX + Math.cos(angle) * sepInnerR, centerY + Math.sin(angle) * sepInnerR);
         ctx.lineTo(centerX + Math.cos(angle) * sepOuterR, centerY + Math.sin(angle) * sepOuterR);
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
     });

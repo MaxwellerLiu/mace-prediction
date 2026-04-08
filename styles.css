@@ -10,13 +10,13 @@
     --primary-dark: #1d4ed8;
     
     /* Risk Level Colors */
-    --risk-low: #22c55e;
+    --risk-low: #16a34a;
     --risk-low-light: #dcfce7;
-    --risk-moderate: #eab308;
+    --risk-moderate: #facc15;
     --risk-moderate-light: #fef9c3;
     --risk-high: #f97316;
     --risk-high-light: #ffedd5;
-    --risk-very-high: #ef4444;
+    --risk-very-high: #dc2626;
     --risk-very-high-light: #fee2e2;
     
     /* Grays */
@@ -493,10 +493,10 @@ body {
     flex-shrink: 0;
 }
 
-.threshold-item.low .threshold-color { background: #22c55e; }
-.threshold-item.moderate .threshold-color { background: #eab308; }
+.threshold-item.low .threshold-color { background: #16a34a; }
+.threshold-item.moderate .threshold-color { background: #facc15; }
 .threshold-item.high .threshold-color { background: #f97316; }
-.threshold-item.very-high .threshold-color { background: #ef4444; }
+.threshold-item.very-high .threshold-color { background: #dc2626; }
 
 .threshold-text {
     font-size: 0.9rem;
@@ -616,16 +616,16 @@ body {
 
 /* Risk colors - match gauge exactly */
 .thresholds-card-compact .threshold-item.low .threshold-color { 
-    background: #22c55e; 
+    background: #16a34a; 
 }
 .thresholds-card-compact .threshold-item.moderate .threshold-color { 
-    background: #eab308; 
+    background: #facc15; 
 }
 .thresholds-card-compact .threshold-item.high .threshold-color { 
     background: #f97316; 
 }
 .thresholds-card-compact .threshold-item.very-high .threshold-color { 
-    background: #ef4444; 
+    background: #dc2626; 
 }
 
 .thresholds-card-compact .threshold-text {
