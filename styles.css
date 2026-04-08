@@ -10,13 +10,13 @@
     --primary-dark: #1d4ed8;
     
     /* Risk Level Colors */
-    --risk-low: #10b981;
-    --risk-low-light: #d1fae5;
-    --risk-moderate: #f59e0b;
-    --risk-moderate-light: #fef3c7;
-    --risk-high: #f97316;
+    --risk-low: #16a34a;
+    --risk-low-light: #dcfce7;
+    --risk-moderate: #eab308;
+    --risk-moderate-light: #fef9c3;
+    --risk-high: #ea580c;
     --risk-high-light: #ffedd5;
-    --risk-very-high: #ef4444;
+    --risk-very-high: #dc2626;
     --risk-very-high-light: #fee2e2;
     
     /* Grays */
@@ -493,10 +493,10 @@ body {
     flex-shrink: 0;
 }
 
-.threshold-item.low .threshold-color { background: var(--risk-low); }
-.threshold-item.moderate .threshold-color { background: var(--risk-moderate); }
-.threshold-item.high .threshold-color { background: var(--risk-high); }
-.threshold-item.very-high .threshold-color { background: var(--risk-very-high); }
+.threshold-item.low .threshold-color { background: #16a34a; }
+.threshold-item.moderate .threshold-color { background: #eab308; }
+.threshold-item.high .threshold-color { background: #ea580c; }
+.threshold-item.very-high .threshold-color { background: #dc2626; }
 
 .threshold-text {
     font-size: 0.9rem;
@@ -557,9 +557,13 @@ body {
 }
 
 /* ============================================
-   Gauge Section
+   Gauge with Thresholds Side by Side
    ============================================ */
-.gauge-section {
+.gauge-with-thresholds {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
     background: #fff;
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-lg);
@@ -568,15 +572,87 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
-.gauge-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.gauge-left {
+    flex: 0 0 auto;
 }
 
 #gaugeCanvas {
     max-width: 100%;
     height: auto;
+}
+
+/* Compact Threshold Card (beside gauge) */
+.thresholds-card-compact {
+    flex: 0 0 240px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.thresholds-card-compact .card-title {
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.thresholds-card-compact .threshold-list {
+    list-style: none;
+    margin-bottom: 14px;
+}
+
+.thresholds-card-compact .threshold-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.thresholds-card-compact .threshold-item:last-child {
+    border-bottom: none;
+}
+
+/* Risk colors - match gauge exactly */
+.thresholds-card-compact .threshold-item.low .threshold-color { 
+    background: #16a34a; 
+}
+.thresholds-card-compact .threshold-item.moderate .threshold-color { 
+    background: #eab308; 
+}
+.thresholds-card-compact .threshold-item.high .threshold-color { 
+    background: #ea580c; 
+}
+.thresholds-card-compact .threshold-item.very-high .threshold-color { 
+    background: #dc2626; 
+}
+
+.thresholds-card-compact .threshold-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.thresholds-card-compact .threshold-refs {
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.thresholds-card-compact .ref-item {
+    font-size: 0.75rem;
+}
+
+@media (max-width: 900px) {
+    .gauge-with-thresholds {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .thresholds-card-compact {
+        flex: 1;
+        width: 100%;
+    }
 }
 
 /* ============================================
