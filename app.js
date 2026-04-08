@@ -554,7 +554,7 @@ function predictRisk(data, units) {
 // ============================================
 // Gauge Drawing with Risk Zones
 // ============================================
-function drawGauge(probability) {
+function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
     const ctx = canvas.getContext('2d');
     const percentage = Math.round(probability * 100);
@@ -689,17 +689,19 @@ function drawGauge(probability) {
     
     // Center percentage text with background
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(centerX - 60, centerY - 55, 120, 45);
+    ctx.fillRect(centerX - 70, centerY - 65, 140, 70);
     
-    ctx.font = 'bold 48px sans-serif';
+    // Percentage
+    ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#1f2937';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', centerX, centerY - 35);
+    ctx.fillText(percentage + '%', centerX, centerY - 40);
     
-    ctx.font = '12px sans-serif';
-    ctx.fillStyle = '#6b7280';
-    ctx.fillText(t.riskSubtitle, centerX, centerY + 5);
+    // Risk level text
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = riskColor || '#6b7280';
+    ctx.fillText(riskLevelText || '', centerX, centerY - 15);
 }
 
 // ============================================
@@ -715,31 +717,35 @@ function updateRiskDisplay(probability) {
     const riskNote = document.getElementById('risk-note');
     const recList = document.getElementById('rec-list');
     
-    let riskLevel, riskText, noteText, recs;
+    let riskLevel, riskText, noteText, recs, riskColor;
     
     if (percentage < RISK_THRESHOLDS.LOW) {
         riskLevel = 'low';
         riskText = t.lowRisk;
         noteText = t.riskNoteLow;
         recs = t.recs.low;
+        riskColor = '#16a34a';
         riskCard.className = 'risk-card';
     } else if (percentage < RISK_THRESHOLDS.MODERATE) {
         riskLevel = 'moderate';
         riskText = t.moderateRisk;
         noteText = t.riskNoteModerate;
         recs = t.recs.moderate;
+        riskColor = '#facc15';
         riskCard.className = 'risk-card moderate';
     } else if (percentage < RISK_THRESHOLDS.HIGH) {
         riskLevel = 'high';
         riskText = t.highRisk;
         noteText = t.riskNoteHigh;
         recs = t.recs.high;
+        riskColor = '#f97316';
         riskCard.className = 'risk-card high';
     } else {
         riskLevel = 'very-high';
         riskText = t.veryHighRisk;
         noteText = t.riskNoteVeryHigh;
         recs = t.recs.veryHigh;
+        riskColor = '#dc2626';
         riskCard.className = 'risk-card very-high';
     }
     
@@ -753,8 +759,8 @@ function updateRiskDisplay(probability) {
         `<li><span class="rec-icon">${icons[i]}</span><span>${rec}</span></li>`
     ).join('');
 
-    // Update gauge with animation
-    drawGauge(probability);
+    // Update gauge with risk info
+    drawGauge(probability, riskText, riskColor);
     renderSHAP(probability);
 
     // Scroll to gauge to show result
