@@ -580,10 +580,14 @@ function drawGauge(probability, riskLevelText, riskColor) {
     const angle30 = Math.PI * 0.7;    // 30%
     const angle100 = 0;               // 100%
     
-    // Helper to draw filled arc segment
+    // Helper to draw filled arc segment using filled wedge
     function drawArcSegment(startAngle, endAngle, color) {
         ctx.beginPath();
-        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+        // Outer arc (counterclockwise: false = normal)
+        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+        // Line to inner arc endpoint
+        ctx.lineTo(centerX + Math.cos(endAngle) * innerRadius, centerY + Math.sin(endAngle) * innerRadius);
+        // Inner arc (clockwise: true = reverse direction to close shape)
         ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
         ctx.closePath();
         ctx.fillStyle = color;
@@ -593,10 +597,10 @@ function drawGauge(probability, riskLevelText, riskColor) {
     // ========================================
     // Draw 4 colored zones (FILLED)
     // ========================================
-    drawArcSegment(angle0, angle10, '#16a34a');      // Green: 0-10%
+    drawArcSegment(angle0, angle10, '#22c55e');      // Green: 0-10%
     drawArcSegment(angle10, angle20, '#fbbf24');     // Yellow: 10-20%
     drawArcSegment(angle20, angle30, '#f97316');     // Orange: 20-30%
-    drawArcSegment(angle30, angle100, '#dc2626');    // Red: 30-100%
+    drawArcSegment(angle30, angle100, '#ef4444');    // Red: 30-100%
     
     // ========================================
     // Draw white separators at 10%, 20%, 30%
@@ -765,7 +769,7 @@ function updateRiskDisplay(probability) {
         riskText = t.lowRisk;
         noteText = t.riskNoteLow;
         recs = t.recs.low;
-        riskColor = '#16a34a';
+        riskColor = '#22c55e';
         riskCard.className = 'risk-card';
     } else if (percentage < RISK_THRESHOLDS.MODERATE) {
         riskLevel = 'moderate';
@@ -786,7 +790,7 @@ function updateRiskDisplay(probability) {
         riskText = t.veryHighRisk;
         noteText = t.riskNoteVeryHigh;
         recs = t.recs.veryHigh;
-        riskColor = '#dc2626';
+        riskColor = '#ef4444';
         riskCard.className = 'risk-card very-high';
     }
     
