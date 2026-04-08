@@ -552,7 +552,7 @@ function predictRisk(data, units) {
 }
 
 // ============================================
-// NEW GAUGE - Clean Implementation
+// NEW GAUGE - Clean Implementation with Filled Arcs
 // ============================================
 function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
@@ -565,72 +565,53 @@ function drawGauge(probability, riskLevelText, riskColor) {
     
     const centerX = canvas.width / 2;
     const centerY = canvas.height - 50;
-    const radius = 160;
-    const lineWidth = 28;
+    const outerRadius = 175;
+    const innerRadius = 145;  // Thickness = 30px
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // ========================================
-    // STEP 1: Calculate zone boundaries
+    // Calculate zone boundaries (angles)
     // 0% = Math.PI (left), 100% = 0 (right)
     // ========================================
-    const angle0 = Math.PI;           // 0% (left)
+    const angle0 = Math.PI;           // 0%
     const angle10 = Math.PI * 0.9;    // 10%
     const angle20 = Math.PI * 0.8;    // 20%
     const angle30 = Math.PI * 0.7;    // 30%
-    const angle100 = 0;               // 100% (right)
+    const angle100 = 0;               // 100%
+    
+    // Helper to draw filled arc segment
+    function drawArcSegment(startAngle, endAngle, color) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+        ctx.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
     
     // ========================================
-    // STEP 2: Draw 4 color zones
+    // Draw 4 colored zones (FILLED)
     // ========================================
-    // Zone 1: 0-10% GREEN
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, angle0, angle10);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#16a34a';  // Green
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Zone 2: 10-20% YELLOW
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, angle10, angle20);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#fbbf24';  // Yellow/Amber
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Zone 3: 20-30% ORANGE
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, angle20, angle30);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#f97316';  // Orange
-    ctx.lineCap = 'butt';
-    ctx.stroke();
-    
-    // Zone 4: 30-100% RED
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, angle30, angle100);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#dc2626';  // Red
-    ctx.lineCap = 'butt';
-    ctx.stroke();
+    drawArcSegment(angle0, angle10, '#16a34a');      // Green: 0-10%
+    drawArcSegment(angle10, angle20, '#fbbf24');     // Yellow: 10-20%
+    drawArcSegment(angle20, angle30, '#f97316');     // Orange: 20-30%
+    drawArcSegment(angle30, angle100, '#dc2626');    // Red: 30-100%
     
     // ========================================
-    // STEP 3: Draw white separators at 10%, 20%, 30%
+    // Draw white separators at 10%, 20%, 30%
     // ========================================
     [angle10, angle20, angle30].forEach(angle => {
-        const innerR = radius - lineWidth/2 - 3;
-        const outerR = radius + lineWidth/2 + 3;
         ctx.beginPath();
-        ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
-        ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
+        ctx.moveTo(centerX + Math.cos(angle) * (innerRadius - 5), centerY + Math.sin(angle) * (innerRadius - 5));
+        ctx.lineTo(centerX + Math.cos(angle) * (outerRadius + 5), centerY + Math.sin(angle) * (outerRadius + 5));
         ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
     });
     
     // ========================================
-    // STEP 4: Draw tick marks
+    // Draw tick marks
     // ========================================
     const ticks = [
         { pct: 0, main: true },
@@ -644,9 +625,9 @@ function drawGauge(probability, riskLevelText, riskColor) {
     
     ticks.forEach(tick => {
         const angle = Math.PI * (1 - tick.pct);
-        const markerLen = tick.main ? 15 : 10;
-        const innerR = radius - lineWidth/2 - markerLen;
-        const outerR = radius + lineWidth/2 + markerLen;
+        const markerLen = tick.main ? 18 : 12;
+        const innerR = innerRadius - markerLen;
+        const outerR = outerRadius + markerLen;
         
         ctx.beginPath();
         ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
@@ -656,7 +637,7 @@ function drawGauge(probability, riskLevelText, riskColor) {
         ctx.stroke();
         
         // Label
-        const labelR = radius + lineWidth/2 + 28;
+        const labelR = outerRadius + 32;
         ctx.font = tick.main ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
         ctx.fillStyle = '#374151';
         ctx.textAlign = 'center';
@@ -665,13 +646,58 @@ function drawGauge(probability, riskLevelText, riskColor) {
     });
     
     // ========================================
-    // STEP 5: Draw needle at correct position
-    // probability 0.12 (12%) -> angle between 10% and 20%
+    // Draw needle
     // ========================================
     const needleAngle = Math.PI * (1 - probability);
-    const needleLen = radius - 25;
+    const needleLen = innerRadius - 15;
     
     // Needle shadow
+    ctx.beginPath();
+    ctx.moveTo(centerX + 2, centerY + 2);
+    ctx.lineTo(centerX + 2 + Math.cos(needleAngle) * needleLen, centerY + 2 + Math.sin(needleAngle) * needleLen);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Needle
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(needleAngle) * needleLen, centerY + Math.sin(needleAngle) * needleLen);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#1f2937';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+    ctx.fillStyle = '#1f2937';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+    
+    // ========================================
+    // Draw center text
+    // ========================================
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(centerX - 70, centerY - 65, 140, 70);
+    
+    // Percentage
+    ctx.font = 'bold 44px sans-serif';
+    ctx.fillStyle = '#1f2937';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(percentage + '%', centerX, centerY - 40);
+    
+    // Risk level text
+    if (riskLevelText) {
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillStyle = riskColor || '#6b7280';
+        ctx.fillText(riskLevelText, centerX, centerY - 15);
+    }
+}
     ctx.beginPath();
     ctx.moveTo(centerX + 2, centerY + 2);
     ctx.lineTo(centerX + 2 + Math.cos(needleAngle) * needleLen, centerY + 2 + Math.sin(needleAngle) * needleLen);
