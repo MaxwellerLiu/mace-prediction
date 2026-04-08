@@ -238,29 +238,79 @@ body {
     box-shadow: 0 0 0 2px var(--primary-light) !important;
 }
 
-/* eGFR Box */
+/* eGFR Box - Enhanced */
 .egfr-box {
-    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
     border: 2px solid var(--success);
     border-radius: var(--radius);
-    padding: 16px 20px;
+    padding: 20px;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: var(--transition);
+}
+
+.egfr-box:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    transform: translateY(-2px);
+}
+
+.egfr-box.stage-1 { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #22c55e; }
+.egfr-box.stage-2 { background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); border-color: #eab308; }
+.egfr-box.stage-3a { background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border-color: #f97316; }
+.egfr-box.stage-3b { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-color: #ef4444; }
+.egfr-box.stage-4 { background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); border-color: #dc2626; }
+.egfr-box.stage-5 { background: linear-gradient(135deg, #fef2f2 0%, #fca5a5 100%); border-color: #991b1b; }
+
+.egfr-main {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 20px 0;
-    font-weight: 600;
 }
 
-.egfr-box span:first-child {
-    color: var(--gray-700);
+.egfr-label {
     font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray-600);
+}
+
+.egfr-value-container {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
 }
 
 .egfr-value {
-    font-size: 1.5rem;
+    font-size: 2rem;
+    font-weight: 800;
     color: var(--success);
-    font-weight: 700;
+    line-height: 1;
+    font-family: 'SF Mono', Monaco, monospace;
 }
+
+.egfr-unit {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.egfr-stage {
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-align: center;
+    background: white;
+    border: 1px solid var(--gray-200);
+}
+
+.egfr-stage.stage-1 { color: #15803d; background: #dcfce7; }
+.egfr-stage.stage-2 { color: #a16207; background: #fef9c3; }
+.egfr-stage.stage-3a { color: #c2410c; background: #ffedd5; }
+.egfr-stage.stage-3b { color: #b91c1c; background: #fee2e2; }
+.egfr-stage.stage-4 { color: #991b1b; background: #fecaca; }
+.egfr-stage.stage-5 { color: #7f1d1d; background: #fca5a5; }
 
 /* Buttons */
 .btn {

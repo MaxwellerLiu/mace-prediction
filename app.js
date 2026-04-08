@@ -776,13 +776,57 @@ function renderShapWaterfall(shapData, finalProbability) {
 // ============================================
 
 function updateEGFR() {
-    const crea = parseFloat(document.getElementById('creatinine').value) || 0;
+    const creaInput = parseFloat(document.getElementById('creatinine').value) || 0;
     const age = parseInt(document.getElementById('age').value) || 0;
     const sex = document.getElementById('sex').value;
+    const creaUnit = document.getElementById('creatinine-unit').value;
     
-    if (crea > 0 && age > 0) {
-        const egfr = calculateEGFR(crea, age, sex);
-        document.getElementById('egfr-value').textContent = egfr.toFixed(1);
+    const egfrValueEl = document.getElementById('egfr-value');
+    const egfrStageEl = document.getElementById('egfr-stage');
+    const egfrBoxEl = document.getElementById('egfr-box');
+    
+    if (creaInput > 0 && age > 0) {
+        // Convert to mg/dL for eGFR calculation if needed
+        const creaMgDl = creaUnit === 'metric' ? umolLToMgDl(creaInput) : creaInput;
+        const egfr = calculateEGFR(creaMgDl, age, sex);
+        
+        // Update eGFR value
+        egfrValueEl.textContent = egfr.toFixed(1);
+        
+        // Determine CKD stage
+        let stage, stageClass, stageText;
+        if (egfr >= 90) {
+            stage = 'stage-1';
+            stageText = 'CKD Stage 1 (Normal/High)';
+        } else if (egfr >= 60) {
+            stage = 'stage-2';
+            stageText = 'CKD Stage 2 (Mild)';
+        } else if (egfr >= 45) {
+            stage = 'stage-3a';
+            stageText = 'CKD Stage 3a (Moderate)';
+        } else if (egfr >= 30) {
+            stage = 'stage-3b';
+            stageText = 'CKD Stage 3b (Moderate-Severe)';
+        } else if (egfr >= 15) {
+            stage = 'stage-4';
+            stageText = 'CKD Stage 4 (Severe)';
+        } else {
+            stage = 'stage-5';
+            stageText = 'CKD Stage 5 (Kidney Failure)';
+        }
+        
+        // Update stage display
+        egfrStageEl.textContent = stageText;
+        egfrStageEl.className = 'egfr-stage ' + stage;
+        
+        // Update box styling
+        egfrBoxEl.className = 'egfr-box ' + stage;
+        
+    } else {
+        egfrValueEl.textContent = '--';
+        egfrStageEl.textContent = '--';
+        egfrStageEl.className = 'egfr-stage';
+        egfrBoxEl.className = 'egfr-box';
     }
 }
 
