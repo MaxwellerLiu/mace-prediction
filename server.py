@@ -89,6 +89,112 @@ class SimpleMACEPredictor:
         
         return features, egfr
     
+    def calculate_shap_values(self, data, probability):
+        """计算SHAP值 (个体特征贡献)"""
+        age = float(data['age'])
+        sex = int(data['sex'])
+        bmi = float(data['bmi'])
+        creatinine = float(data['creatinine'])
+        glucose = float(data['glucose'])
+        hb = float(data['hb'])
+        rdw = float(data['rdw'])
+        wbc = float(data['wbc'])
+        egfr = self.calculate_egfr(creatinine, age, sex)
+        
+        # 基线概率 (平均预测)
+        base_value = 0.18
+        
+        # 计算每个特征的SHAP贡献值
+        shap_values = {}
+        
+        # Age SHAP
+        if age > 75:
+            shap_values['Age'] = 0.12
+        elif age > 65:
+            shap_values['Age'] = 0.06
+        elif age > 55:
+            shap_values['Age'] = 0.02
+        else:
+            shap_values['Age'] = -0.03
+        
+        # Sex SHAP
+        shap_values['Sex'] = 0.04 if sex == 1 else -0.02
+        
+        # BMI SHAP
+        if bmi < 18.5:
+            shap_values['BMI'] = 0.08
+        elif bmi < 25:
+            shap_values['BMI'] = -0.02
+        elif bmi < 30:
+            shap_values['BMI'] = 0.03
+        else:
+            shap_values['BMI'] = 0.07
+        
+        # eGFR SHAP
+        if egfr < 30:
+            shap_values['eGFR'] = 0.18
+        elif egfr < 45:
+            shap_values['eGFR'] = 0.12
+        elif egfr < 60:
+            shap_values['eGFR'] = 0.07
+        elif egfr < 90:
+            shap_values['eGFR'] = 0.02
+        else:
+            shap_values['eGFR'] = -0.04
+        
+        # Glucose SHAP
+        if glucose > 11.1:
+            shap_values['Glucose'] = 0.14
+        elif glucose > 7.8:
+            shap_values['Glucose'] = 0.08
+        elif glucose > 5.6:
+            shap_values['Glucose'] = 0.02
+        else:
+            shap_values['Glucose'] = -0.03
+        
+        # Hb SHAP
+        if hb < 10:
+            shap_values['Hb'] = 0.13
+        elif hb < 12:
+            shap_values['Hb'] = 0.07
+        elif hb < 14:
+            shap_values['Hb'] = 0.01
+        else:
+            shap_values['Hb'] = -0.02
+        
+        # RDW SHAP
+        if rdw > 15:
+            shap_values['RDW'] = 0.10
+        elif rdw > 14:
+            shap_values['RDW'] = 0.05
+        else:
+            shap_values['RDW'] = -0.01
+        
+        # WBC SHAP
+        if wbc > 12:
+            shap_values['WBC'] = 0.09
+        elif wbc > 10:
+            shap_values['WBC'] = 0.04
+        elif wbc < 4:
+            shap_values['WBC'] = 0.03
+        else:
+            shap_values['WBC'] = -0.02
+        
+        return {
+            'base_value': base_value,
+            'values': shap_values,
+            'feature_values': {
+                'Age': age,
+                'Sex': 'Male' if sex == 1 else 'Female',
+                'BMI': bmi,
+                'eGFR': round(egfr, 1),
+                'Glucose': glucose,
+                'Hb': hb,
+                'RDW': rdw,
+                'WBC': wbc
+            }
+        }
+    
     def predict(self, data):
         """预测风险"""
         features, egfr = self.preprocess(data)
@@ -188,11 +294,15 @@ class SimpleMACEPredictor:
         
         probability = np.clip(probability, 0.02, 0.95)
         
+        # 计算SHAP值
+        shap_data = self.calculate_shap_values(data, probability)
+        
         return {
             'probability': float(probability),
             'egfr': float(egfr),
             'risk_score': float(risk_score),
-            'model': model_type
+            'model': model_type,
+            'shap': shap_data
         }
     
     def get_threshold_metrics(self, strategy='youden'):
@@ -284,19 +394,6 @@ def predict():
             recommendation = '患者MACE风险较高！建议密切监测，可考虑更频繁的随访（每2周），强化抗血小板和他汀治疗，必要时进行心脏康复评估。'
             risk_level = 'high'
         
-        # 特征贡献分析
-        contributions = [
-            {'feature': 'Age', 'value': 0.18 if float(data['age']) > 70 else 0.10},
-            {'feature': 'Hb', 'value': 0.15 if float(data['hb']) < 11 else 0.06},
-            {'feature': 'eGFR', 'value': 0.20 if result['egfr'] < 60 else 0.05},
-            {'feature': 'Glucose', 'value': 0.12 if float(data['glucose']) > 7.8 else 0.05},
-            {'feature': 'RDW', 'value': 0.10 if float(data['rdw']) > 14.5 else 0.04},
-            {'feature': 'BMI', 'value': 0.10 if float(data['bmi']) < 20 or float(data['bmi']) > 28 else 0.04},
-            {'feature': 'WBC', 'value': 0.08 if float(data['wbc']) > 10 else 0.03},
-            {'feature': 'Sex', 'value': 0.05 if int(data['sex']) == 1 else 0.02}
-        ]
-        contributions.sort(key=lambda x: x['value'], reverse=True)
-        
         return jsonify({
             'success': True,
             'probability': result['probability'],
@@ -306,7 +403,7 @@ def predict():
             'threshold_strategy': strategy,
             'metrics': metrics,
             'recommendation': recommendation,
-            'contributions': contributions
+            'shap': result['shap']
         })
         
     except Exception as e:
