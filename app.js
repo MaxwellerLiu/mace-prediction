@@ -569,14 +569,6 @@ function drawGauge(probability) {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Background arc
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, 0);
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
     // Calculate segment positions based on risk thresholds
     // Low: 0-10% (0-0.1) -> angle Math.PI to Math.PI*0.9
     // Moderate: 10-20% (0.1-0.2) -> angle Math.PI*0.9 to Math.PI*0.8
@@ -587,33 +579,59 @@ function drawGauge(probability) {
     const moderateEnd = Math.PI * 0.8;
     const highEnd = Math.PI * 0.7;
     
-    // Low risk zone (0-10%) - Green
+    // Background arc (gray base)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, Math.PI, 0);
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+    
+    // Draw risk zones with clear colors and borders
+    // Low risk zone (0-10%) - Green (#16a34a - darker green for better contrast)
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, Math.PI, lowEnd);
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#10b981';
+    ctx.strokeStyle = '#16a34a';
+    ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // Moderate risk zone (10-20%) - Yellow
+    // Moderate risk zone (10-20%) - Yellow/Orange (#eab308 - more saturated)
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, lowEnd, moderateEnd);
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#f59e0b';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // High risk zone (20-30%) - Orange
+    // High risk zone (20-30%) - Orange (#ea580c - stronger orange)
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, moderateEnd, highEnd);
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#f97316';
+    ctx.strokeStyle = '#ea580c';
+    ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // Very high risk zone (30-100%) - Red
+    // Very high risk zone (30-100%) - Red (#dc2626 - stronger red)
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, highEnd, 0);
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#ef4444';
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineCap = 'butt';
     ctx.stroke();
+    
+    // Draw separator lines between zones for clarity
+    const separatorAngles = [lowEnd, moderateEnd, highEnd];
+    separatorAngles.forEach(angle => {
+        const sepInnerR = radius - lineWidth/2 - 2;
+        const sepOuterR = radius + lineWidth/2 + 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX + Math.cos(angle) * sepInnerR, centerY + Math.sin(angle) * sepInnerR);
+        ctx.lineTo(centerX + Math.cos(angle) * sepOuterR, centerY + Math.sin(angle) * sepOuterR);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+    });
     
     // Draw threshold markers
     [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0].forEach((pct, i) => {
@@ -641,60 +659,77 @@ function drawGauge(probability) {
         ctx.fillText(Math.round(pct * 100) + '%', labelX, labelY);
     });
     
-    // Draw threshold labels
+    // Draw threshold labels with matching colors
     const t = i18n[currentLang];
-    ctx.font = 'bold 11px sans-serif';
-    ctx.fillStyle = '#10b981';
-    ctx.fillText(t.lowRisk, centerX - radius * 0.7, centerY - radius * 0.3);
+    ctx.font = 'bold 12px sans-serif';
     
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillText(t.moderateRisk, centerX - radius * 0.2, centerY - radius * 0.7);
+    ctx.fillStyle = '#16a34a';
+    ctx.fillText(t.lowRisk, centerX - radius * 0.75, centerY - radius * 0.25);
     
-    ctx.fillStyle = '#f97316';
-    ctx.fillText(t.highRisk, centerX + radius * 0.2, centerY - radius * 0.7);
+    ctx.fillStyle = '#eab308';
+    ctx.fillText(t.moderateRisk, centerX - radius * 0.25, centerY - radius * 0.65);
     
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText(t.veryHighRisk, centerX + radius * 0.7, centerY - radius * 0.3);
+    ctx.fillStyle = '#ea580c';
+    ctx.fillText(t.highRisk, centerX + radius * 0.15, centerY - radius * 0.65);
     
-    // Needle - correct angle calculation
+    ctx.fillStyle = '#dc2626';
+    ctx.fillText(t.veryHighRisk, centerX + radius * 0.65, centerY - radius * 0.25);
+    
+    // Needle with animation support
     // 0% risk = Math.PI (left), 100% risk = 0 (right)
-    const needleAngle = Math.PI * (1 - probability);
-    const needleLength = radius - 20;
+    const targetAngle = Math.PI * (1 - probability);
+    const needleLength = radius - 25;
     
+    // Draw needle shadow for depth
+    ctx.beginPath();
+    ctx.moveTo(centerX + 2, centerY + 2);
+    ctx.lineTo(
+        centerX + 2 + Math.cos(targetAngle) * needleLength,
+        centerY + 2 + Math.sin(targetAngle) * needleLength
+    );
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    // Draw needle
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(
-        centerX + Math.cos(needleAngle) * needleLength,
-        centerY + Math.sin(needleAngle) * needleLength
+        centerX + Math.cos(targetAngle) * needleLength,
+        centerY + Math.sin(targetAngle) * needleLength
     );
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.strokeStyle = '#1f2937';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Needle center
+    // Needle center dot
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#1f2937';
     ctx.fill();
     
-    // Center circle border
+    // Needle center highlight
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
-    ctx.lineWidth = 3;
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+    ctx.lineWidth = 2;
     ctx.strokeStyle = '#fff';
     ctx.stroke();
     
-    // Center percentage text
-    ctx.font = 'bold 44px sans-serif';
+    // Center percentage text with background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(centerX - 60, centerY - 55, 120, 45);
+    
+    ctx.font = 'bold 48px sans-serif';
     ctx.fillStyle = '#1f2937';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', centerX, centerY - 10);
+    ctx.fillText(percentage + '%', centerX, centerY - 35);
     
-    ctx.font = '13px sans-serif';
+    ctx.font = '12px sans-serif';
     ctx.fillStyle = '#6b7280';
-    ctx.fillText(t.riskSubtitle, centerX, centerY + 20);
+    ctx.fillText(t.riskSubtitle, centerX, centerY + 5);
 }
 
 // ============================================
@@ -744,12 +779,16 @@ function updateRiskDisplay(probability) {
     
     // Update recommendations
     const icons = ['💊', '📅', '💉', '🏥'];
-    recList.innerHTML = recs.map((rec, i) => 
+    recList.innerHTML = recs.map((rec, i) =>
         `<li><span class="rec-icon">${icons[i]}</span><span>${rec}</span></li>`
     ).join('');
-    
+
+    // Update gauge with animation
     drawGauge(probability);
     renderSHAP(probability);
+
+    // Scroll to gauge to show result
+    document.querySelector('.gauge-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 // ============================================
