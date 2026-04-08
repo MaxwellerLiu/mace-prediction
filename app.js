@@ -552,13 +552,14 @@ function predictRisk(data, units) {
 }
 
 // ============================================
-// Gauge Drawing with Risk Zones
+// NEW GAUGE - Clean Implementation
 // ============================================
 function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
     const ctx = canvas.getContext('2d');
     const percentage = Math.round(probability * 100);
     
+    // Canvas setup
     canvas.width = 500;
     canvas.height = 280;
     
@@ -569,129 +570,141 @@ function drawGauge(probability, riskLevelText, riskColor) {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Color zones proportional to risk ranges:
-    // - Green: 0-10%  -> angle Math.PI to Math.PI*0.9
-    // - Yellow: 10-20% -> angle Math.PI*0.9 to Math.PI*0.8  
-    // - Orange: 20-30% -> angle Math.PI*0.8 to Math.PI*0.7
-    // - Red: 30-100%   -> angle Math.PI*0.7 to 0
+    // ========================================
+    // STEP 1: Calculate zone boundaries
+    // 0% = Math.PI (left), 100% = 0 (right)
+    // ========================================
+    const angle0 = Math.PI;           // 0% (left)
+    const angle10 = Math.PI * 0.9;    // 10%
+    const angle20 = Math.PI * 0.8;    // 20%
+    const angle30 = Math.PI * 0.7;    // 30%
+    const angle100 = 0;               // 100% (right)
     
-    const lowEnd = Math.PI * 0.9;        // 10%
-    const moderateEnd = Math.PI * 0.8;   // 20%
-    const highEnd = Math.PI * 0.7;       // 30%
-    
-    // Draw full background first
+    // ========================================
+    // STEP 2: Draw 4 color zones
+    // ========================================
+    // Zone 1: 0-10% GREEN
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, Math.PI, 0);
+    ctx.arc(centerX, centerY, radius, angle0, angle10);
     ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = '#e5e7eb';
+    ctx.strokeStyle = '#16a34a';  // Green
     ctx.lineCap = 'butt';
     ctx.stroke();
     
-    // Draw colored zones
-    const zones = [
-        { start: Math.PI, end: lowEnd, color: '#22c55e' },      // Green 0-10% (bright)
-        { start: lowEnd, end: moderateEnd, color: '#eab308' },  // Yellow 10-20% (golden)
-        { start: moderateEnd, end: highEnd, color: '#f97316' }, // Orange 20-30%
-        { start: highEnd, end: 0, color: '#ef4444' }            // Red 30-100% (bright)
-    ];
+    // Zone 2: 10-20% YELLOW
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, angle10, angle20);
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = '#fbbf24';  // Yellow/Amber
+    ctx.lineCap = 'butt';
+    ctx.stroke();
     
-    zones.forEach(zone => {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, zone.start, zone.end);
-        ctx.lineWidth = lineWidth;
-        ctx.strokeStyle = zone.color;
-        ctx.lineCap = 'butt';
-        ctx.stroke();
-    });
+    // Zone 3: 20-30% ORANGE
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, angle20, angle30);
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = '#f97316';  // Orange
+    ctx.lineCap = 'butt';
+    ctx.stroke();
     
-    // Draw white separator lines at thresholds (10%, 20%, 30%)
-    [lowEnd, moderateEnd, highEnd].forEach(angle => {
-        const sepInnerR = radius - lineWidth/2 - 3;
-        const sepOuterR = radius + lineWidth/2 + 3;
+    // Zone 4: 30-100% RED
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, angle30, angle100);
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = '#dc2626';  // Red
+    ctx.lineCap = 'butt';
+    ctx.stroke();
+    
+    // ========================================
+    // STEP 3: Draw white separators at 10%, 20%, 30%
+    // ========================================
+    [angle10, angle20, angle30].forEach(angle => {
+        const innerR = radius - lineWidth/2 - 3;
+        const outerR = radius + lineWidth/2 + 3;
         ctx.beginPath();
-        ctx.moveTo(centerX + Math.cos(angle) * sepInnerR, centerY + Math.sin(angle) * sepInnerR);
-        ctx.lineTo(centerX + Math.cos(angle) * sepOuterR, centerY + Math.sin(angle) * sepOuterR);
+        ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
+        ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
         ctx.lineWidth = 4;
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
     });
     
-    // Draw tick marks and labels at key thresholds
-    // 0%, 10%, 20%, 30%, 50%, 75%, 100%
-    const tickPositions = [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1.0];
-    tickPositions.forEach((pct, i) => {
-        const angle = Math.PI * (1 - pct);
-        const isMainTick = (pct === 0 || pct === 0.1 || pct === 0.2 || pct === 0.3 || pct === 1.0);
-        const markerLength = isMainTick ? 15 : 10;
-        const innerR = radius - lineWidth/2 - markerLength;
-        const outerR = radius + lineWidth/2 + markerLength;
+    // ========================================
+    // STEP 4: Draw tick marks
+    // ========================================
+    const ticks = [
+        { pct: 0, main: true },
+        { pct: 0.1, main: true },
+        { pct: 0.2, main: true },
+        { pct: 0.3, main: true },
+        { pct: 0.5, main: false },
+        { pct: 0.75, main: false },
+        { pct: 1.0, main: true }
+    ];
+    
+    ticks.forEach(tick => {
+        const angle = Math.PI * (1 - tick.pct);
+        const markerLen = tick.main ? 15 : 10;
+        const innerR = radius - lineWidth/2 - markerLen;
+        const outerR = radius + lineWidth/2 + markerLen;
         
         ctx.beginPath();
         ctx.moveTo(centerX + Math.cos(angle) * innerR, centerY + Math.sin(angle) * innerR);
         ctx.lineTo(centerX + Math.cos(angle) * outerR, centerY + Math.sin(angle) * outerR);
-        ctx.lineWidth = isMainTick ? 3 : 2;
+        ctx.lineWidth = tick.main ? 3 : 2;
         ctx.strokeStyle = '#374151';
         ctx.stroke();
         
-        // Percentage labels
-        const labelRadius = radius + lineWidth/2 + 28;
-        const labelX = centerX + Math.cos(angle) * labelRadius;
-        const labelY = centerY + Math.sin(angle) * labelRadius;
-        
-        ctx.font = isMainTick ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
+        // Label
+        const labelR = radius + lineWidth/2 + 28;
+        ctx.font = tick.main ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
         ctx.fillStyle = '#374151';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(Math.round(pct * 100) + '%', labelX, labelY);
+        ctx.fillText(Math.round(tick.pct * 100) + '%', centerX + Math.cos(angle) * labelR, centerY + Math.sin(angle) * labelR);
     });
     
-    // Needle with animation support
-    // 0% risk = Math.PI (left), 100% risk = 0 (right)
-    const targetAngle = Math.PI * (1 - probability);
-    const needleLength = radius - 25;
+    // ========================================
+    // STEP 5: Draw needle at correct position
+    // probability 0.12 (12%) -> angle between 10% and 20%
+    // ========================================
+    const needleAngle = Math.PI * (1 - probability);
+    const needleLen = radius - 25;
     
-    // Draw needle shadow for depth
+    // Needle shadow
     ctx.beginPath();
     ctx.moveTo(centerX + 2, centerY + 2);
-    ctx.lineTo(
-        centerX + 2 + Math.cos(targetAngle) * needleLength,
-        centerY + 2 + Math.sin(targetAngle) * needleLength
-    );
+    ctx.lineTo(centerX + 2 + Math.cos(needleAngle) * needleLen, centerY + 2 + Math.sin(needleAngle) * needleLen);
     ctx.lineWidth = 6;
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Draw needle
+    // Needle
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
-    ctx.lineTo(
-        centerX + Math.cos(targetAngle) * needleLength,
-        centerY + Math.sin(targetAngle) * needleLength
-    );
+    ctx.lineTo(centerX + Math.cos(needleAngle) * needleLen, centerY + Math.sin(needleAngle) * needleLen);
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#1f2937';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Needle center dot
+    // Center dot
     ctx.beginPath();
     ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#1f2937';
     ctx.fill();
-    
-    // Needle center highlight
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#fff';
     ctx.stroke();
     
-    // Center percentage text with background
+    // ========================================
+    // STEP 6: Draw center text (percentage + risk level)
+    // ========================================
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(centerX - 70, centerY - 65, 140, 70);
     
-    // Percentage
+    // Percentage number
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#1f2937';
     ctx.textAlign = 'center';
@@ -699,9 +712,11 @@ function drawGauge(probability, riskLevelText, riskColor) {
     ctx.fillText(percentage + '%', centerX, centerY - 40);
     
     // Risk level text
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillStyle = riskColor || '#6b7280';
-    ctx.fillText(riskLevelText || '', centerX, centerY - 15);
+    if (riskLevelText) {
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillStyle = riskColor || '#6b7280';
+        ctx.fillText(riskLevelText, centerX, centerY - 15);
+    }
 }
 
 // ============================================
@@ -724,14 +739,14 @@ function updateRiskDisplay(probability) {
         riskText = t.lowRisk;
         noteText = t.riskNoteLow;
         recs = t.recs.low;
-        riskColor = '#22c55e';
+        riskColor = '#16a34a';
         riskCard.className = 'risk-card';
     } else if (percentage < RISK_THRESHOLDS.MODERATE) {
         riskLevel = 'moderate';
         riskText = t.moderateRisk;
         noteText = t.riskNoteModerate;
         recs = t.recs.moderate;
-        riskColor = '#eab308';
+        riskColor = '#fbbf24';
         riskCard.className = 'risk-card moderate';
     } else if (percentage < RISK_THRESHOLDS.HIGH) {
         riskLevel = 'high';
@@ -745,7 +760,7 @@ function updateRiskDisplay(probability) {
         riskText = t.veryHighRisk;
         noteText = t.riskNoteVeryHigh;
         recs = t.recs.veryHigh;
-        riskColor = '#ef4444';
+        riskColor = '#dc2626';
         riskCard.className = 'risk-card very-high';
     }
     
