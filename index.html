@@ -10,8 +10,8 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <h1>MACE Risk Prediction</h1>
-            <span class="header-subtitle">90-Day MACE After PCI in STEMI Patients (NB Model)</span>
+            <h1>MACE风险预测</h1>
+            <span class="header-subtitle">STEMI患者PCI术后90天MACE风险预测模型</span>
         </div>
         <button class="lang-btn" onclick="toggleLanguage()">English</button>
     </header>
@@ -20,15 +20,15 @@
         <!-- Left Sidebar - Patient Info -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <span class="icon">📝</span>
-                <span id="sidebar-title">Patient Information</span>
+                <span class="icon">📋</span>
+                <span id="sidebar-title">患者信息</span>
             </div>
             
             <form id="prediction-form">
                 <!-- Creatinine with eGFR Calculation -->
                 <div class="input-group">
                     <div class="input-label-row">
-                        <label id="label-creatinine">Creatinine</label>
+                        <label id="label-creatinine">肌酐</label>
                         <select id="creatinine-unit" class="unit-select" onchange="updateUnitLabels()">
                             <option value="metric" selected>μmol/L</option>
                             <option value="us">mg/dL</option>
@@ -36,12 +36,12 @@
                     </div>
                     <div class="input-with-action">
                         <input type="number" id="creatinine" step="1" value="106" required>
-                        <button type="button" class="calc-btn" onclick="calculateEGFRDisplay()" title="Calculate eGFR">
+                        <button type="button" class="calc-btn" onclick="calculateEGFRDisplay()" title="计算eGFR">
                             🔍
                         </button>
                     </div>
                     <div id="egfr-result" class="egfr-result hidden">
-                        <span class="egfr-label">eGFR (CKD-EPI 2021)</span>
+                        <span class="egfr-label">估算肾小球滤过率 (eGFR)</span>
                         <div class="egfr-value-row">
                             <span id="egfr-value" class="egfr-num">--</span>
                             <span class="egfr-unit">mL/min/1.73m²</span>
@@ -52,16 +52,19 @@
 
                 <!-- Age -->
                 <div class="input-group">
-                    <label id="label-age">Age (years)</label>
+                    <div class="input-label-row">
+                        <label id="label-age">年龄</label>
+                        <span class="unit-hint">岁</span>
+                    </div>
                     <input type="number" id="age" min="18" max="120" value="68" required onchange="updateEGFRDisplay()">
                 </div>
 
                 <!-- Sex -->
                 <div class="input-group">
-                    <label id="label-sex">Sex</label>
+                    <label id="label-sex">性别</label>
                     <select id="sex" required onchange="updateEGFRDisplay()">
-                        <option value="1" selected id="opt-male">Male</option>
-                        <option value="0" id="opt-female">Female</option>
+                        <option value="1" selected id="opt-male">男性</option>
+                        <option value="0" id="opt-female">女性</option>
                     </select>
                 </div>
 
@@ -69,8 +72,8 @@
                 <div class="input-group">
                     <label>BMI (kg/m²)</label>
                     <div class="bmi-inputs">
-                        <input type="number" id="height" placeholder="Height (cm)" min="100" max="250" value="170" oninput="calculateBMI()">
-                        <input type="number" id="weight" placeholder="Weight (kg)" min="30" max="200" step="0.1" value="71" oninput="calculateBMI()">
+                        <input type="number" id="height" placeholder="身高 (cm)" min="100" max="250" value="170" oninput="calculateBMI()">
+                        <input type="number" id="weight" placeholder="体重 (kg)" min="30" max="200" step="0.1" value="71" oninput="calculateBMI()">
                     </div>
                     <input type="number" id="bmi" value="24.6" readonly class="bmi-result">
                 </div>
@@ -78,7 +81,7 @@
                 <!-- Glucose -->
                 <div class="input-group">
                     <div class="input-label-row">
-                        <label id="label-glucose">Glucose</label>
+                        <label id="label-glucose">血糖</label>
                         <select id="glucose-unit" class="unit-select" onchange="updateUnitLabels()">
                             <option value="metric" selected>mmol/L</option>
                             <option value="us">mg/dL</option>
@@ -90,7 +93,7 @@
                 <!-- Hemoglobin -->
                 <div class="input-group">
                     <div class="input-label-row">
-                        <label id="label-hemoglobin">Hemoglobin</label>
+                        <label id="label-hemoglobin">血红蛋白</label>
                         <select id="hb-unit" class="unit-select" onchange="updateUnitLabels()">
                             <option value="metric" selected>g/L</option>
                             <option value="us">g/dL</option>
@@ -101,66 +104,105 @@
 
                 <!-- RDW -->
                 <div class="input-group">
-                    <label id="label-rdw">RDW (%)</label>
+                    <div class="input-label-row">
+                        <label id="label-rdw">红细胞分布宽度 (%)</label>
+                    </div>
                     <input type="number" id="rdw" step="0.1" value="13.60" required>
                 </div>
 
                 <!-- WBC -->
                 <div class="input-group">
-                    <label id="label-wbc">WBC (×10⁹/L)</label>
+                    <div class="input-label-row">
+                        <label id="label-wbc">白细胞计数 (×10⁹/L)</label>
+                    </div>
                     <input type="number" id="wbc" step="0.1" value="11.20" required>
                 </div>
 
                 <!-- Model Selection -->
                 <div class="input-group">
-                    <label id="label-model">Model</label>
+                    <label id="label-model">预测模型</label>
                     <select id="model-select">
-                        <option value="NB" selected>Naive Bayes (NB) ★ Best</option>
+                        <option value="NB" selected>朴素贝叶斯 (推荐)</option>
                         <option value="LightGBM">LightGBM</option>
                         <option value="XGBoost">XGBoost</option>
                     </select>
                 </div>
 
                 <button type="submit" class="predict-btn">
-                    <span>🔮</span>
-                    <span id="btn-predict">Predict MACE Risk</span>
+                    <span>🎯</span>
+                    <span id="btn-predict">计算风险</span>
                 </button>
             </form>
         </aside>
 
         <!-- Main Content - Results -->
         <main class="main-content">
-            <!-- Top Row: Risk Assessment + Clinical Recommendations -->
+            <!-- Top Row: Risk Assessment + Thresholds + Clinical Recommendations -->
             <div class="top-row">
                 <!-- Risk Assessment Card -->
                 <div class="risk-card" id="risk-card">
                     <div class="risk-header">
-                        <span class="icon">🎯</span>
-                        <span id="risk-title">Risk Assessment</span>
+                        <span class="icon">📊</span>
+                        <span id="risk-title">MACE风险评估</span>
                     </div>
                     <div class="risk-content">
                         <div class="risk-status" id="risk-status">
                             <span class="status-icon">✓</span>
-                            <span id="status-text">Low Risk</span>
+                            <span id="status-text">中风险</span>
                         </div>
-                        <div class="risk-percentage" id="risk-percentage">12.4%</div>
-                        <div class="risk-subtitle" id="risk-subtitle">90天MACE概率</div>
-                        <div class="risk-note" id="risk-note">Standard post-PCI care appropriate</div>
+                        <div class="risk-percentage" id="risk-percentage">12%</div>
+                        <div class="risk-subtitle" id="risk-subtitle">90天主要不良心血管事件风险</div>
+                        <div class="risk-note" id="risk-note">建议加强监测与随访</div>
+                    </div>
+                </div>
+
+                <!-- Risk Thresholds Card -->
+                <div class="thresholds-card">
+                    <div class="card-title">
+                        <span class="icon">📐</span>
+                        <span id="thresholds-title">风险分层标准</span>
+                    </div>
+                    <ul class="threshold-list">
+                        <li class="threshold-item low">
+                            <span class="threshold-color"></span>
+                            <span class="threshold-text" id="threshold-low"><10% 低风险</span>
+                        </li>
+                        <li class="threshold-item moderate">
+                            <span class="threshold-color"></span>
+                            <span class="threshold-text" id="threshold-moderate">10-20% 中风险</span>
+                        </li>
+                        <li class="threshold-item high">
+                            <span class="threshold-color"></span>
+                            <span class="threshold-text" id="threshold-high">20-30% 高风险</span>
+                        </li>
+                        <li class="threshold-item very-high">
+                            <span class="threshold-color"></span>
+                            <span class="threshold-text" id="threshold-veryhigh">≥30% 极高风险</span>
+                        </li>
+                    </ul>
+                    <div class="threshold-refs">
+                        <div class="ref-item">
+                            <span class="ref-icon">📖</span>
+                            <span id="ref-riskpci">基于RISK-PCI评分</span>
+                        </div>
+                        <div class="ref-item">
+                            <span class="ref-icon">📖</span>
+                            <span id="ref-acc">参考ACC/AHA指南</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Clinical Recommendations -->
                 <div class="recommendations-card">
                     <div class="card-title">
-                        <span class="icon">📋</span>
-                        <span id="rec-title">Clinical Recommendations</span>
+                        <span class="icon">💡</span>
+                        <span id="rec-title">临床建议</span>
                     </div>
                     <ul class="rec-list" id="rec-list">
-                        <li><span class="rec-icon">🏥</span><span id="rec-1">Standard post-PCI discharge protocol</span></li>
-                        <li><span class="rec-icon">📅</span><span id="rec-2">Routine follow-up (4-6 weeks)</span></li>
-                        <li><span class="rec-icon">💊</span><span id="rec-3">Continue prescribed medications</span></li>
-                        <li><span class="rec-icon">🥗</span><span id="rec-4">Lifestyle counseling</span></li>
-                        <li><span class="rec-icon">✓</span><span id="rec-5">Low MACE risk (12.4%) - standard care</span></li>
+                        <li><span class="rec-icon">💊</span><span>强化双抗血小板治疗</span></li>
+                        <li><span class="rec-icon">📅</span><span>2、4、8周随访</span></li>
+                        <li><span class="rec-icon">💉</span><span>β受体阻滞剂应用</span></li>
+                        <li><span class="rec-icon">🏥</span><span>心脏康复评估</span></li>
                     </ul>
                 </div>
             </div>
@@ -168,22 +210,16 @@
             <!-- Gauge Section -->
             <div class="gauge-section">
                 <div class="gauge-container">
-                    <canvas id="gaugeCanvas" width="400" height="220"></canvas>
-                    <div class="gauge-labels">
-                        <span>0%</span>
-                        <span>25%</span>
-                        <span>50%</span>
-                        <span>75%</span>
-                        <span>100%</span>
-                    </div>
+                    <canvas id="gaugeCanvas"></canvas>
                 </div>
             </div>
 
             <!-- Model Performance -->
             <div class="performance-section">
                 <div class="section-title">
-                    <span class="icon">📊</span>
-                    <span id="perf-title">Model Performance (External Validation)</span>
+                    <span class="icon">📈</span>
+                    <span id="perf-title">模型性能</span>
+                    <span class="section-subtitle" id="perf-subtitle">外部验证结果</span>
                 </div>
                 <div class="metrics-row">
                     <div class="metric-card">
@@ -192,19 +228,19 @@
                         <div class="metric-sub">95% CI: 0.670-0.833</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-name" id="metric-sens">Sensitivity</div>
+                        <div class="metric-name" id="metric-sens">敏感度</div>
                         <div class="metric-value">70.3%</div>
-                        <div class="metric-sub" id="metric-sens-sub">at threshold 0.075</div>
+                        <div class="metric-sub" id="metric-sens-sub">阈值 0.075</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-name" id="metric-spec">Specificity</div>
+                        <div class="metric-name" id="metric-spec">特异度</div>
                         <div class="metric-value">72.1%</div>
-                        <div class="metric-sub" id="metric-spec-sub">at threshold 0.075</div>
+                        <div class="metric-sub" id="metric-spec-sub">阈值 0.075</div>
                     </div>
                     <div class="metric-card highlight">
                         <div class="metric-name" id="metric-npv">NPV</div>
                         <div class="metric-value">95.2%</div>
-                        <div class="metric-sub" id="metric-npv-sub">Rule-out confidence</div>
+                        <div class="metric-sub" id="metric-npv-sub">排除高危</div>
                     </div>
                 </div>
             </div>
@@ -212,14 +248,59 @@
             <!-- Feature Contributions -->
             <div class="features-section">
                 <div class="section-title">
-                    <span class="icon">🔍</span>
-                    <span id="features-title">Feature Contributions</span>
+                    <span class="icon">🔬</span>
+                    <span id="features-title">风险因子贡献度</span>
                 </div>
-                <div class="features-subtitle" id="features-subtitle">Based on permutation importance from external validation</div>
+                <div class="features-subtitle" id="features-subtitle">基于排列重要性分析</div>
                 
-                <div class="shap-title" id="shap-title">SHAP Feature Contributions</div>
+                <div class="shap-title" id="shap-title">SHAP值分析</div>
                 <div class="shap-chart" id="shap-chart">
                     <!-- SHAP bars will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Literature References -->
+            <div class="literature-section">
+                <div class="section-title">
+                    <span class="icon">📚</span>
+                    <span id="literature-title">循证依据</span>
+                </div>
+                <div class="literature-grid">
+                    <div class="literature-card">
+                        <div class="lit-title">
+                            <span class="lit-icon">📄</span>
+                            <span id="lit-riskpci">RISK-PCI评分</span>
+                        </div>
+                        <div class="lit-desc" id="lit-riskpci-desc">STEMI患者PCI术后MACE风险预测，C-statistic=0.78</div>
+                        <div class="lit-citation">Mrdovic et al., Int J Cardiol 2013;162(3):220-227</div>
+                    </div>
+                    
+                    <div class="literature-card">
+                        <div class="lit-title">
+                            <span class="lit-icon">📄</span>
+                            <span id="lit-mbfgls">MBF+GLS模型</span>
+                        </div>
+                        <div class="lit-desc" id="lit-mbfgls-desc">基于心肌血流灌注与应变分析，AUC=0.95</div>
+                        <div class="lit-citation">Cardiac Imaging Risk Prediction Model 2023</div>
+                    </div>
+                    
+                    <div class="literature-card">
+                        <div class="lit-title">
+                            <span class="lit-icon">📄</span>
+                            <span id="lit-acc">ACC/AHA指南</span>
+                        </div>
+                        <div class="lit-desc" id="lit-acc-desc">心血管风险分层与治疗建议</div>
+                        <div class="lit-citation">2019/2026 ACC/AHA Guideline</div>
+                    </div>
+                    
+                    <div class="literature-card">
+                        <div class="lit-title">
+                            <span class="lit-icon">📄</span>
+                            <span id="lit-grace">GRACE评分</span>
+                        </div>
+                        <div class="lit-desc" id="lit-grace-desc">急性冠脉综合征全球注册风险评分</div>
+                        <div class="lit-citation">Global Registry of Acute Coronary Events</div>
+                    </div>
                 </div>
             </div>
         </main>
