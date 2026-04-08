@@ -589,10 +589,10 @@ function drawGauge(probability, riskLevelText, riskColor) {
     
     // Draw colored zones
     const zones = [
-        { start: Math.PI, end: lowEnd, color: '#16a34a' },      // Green 0-10%
-        { start: lowEnd, end: moderateEnd, color: '#facc15' },  // Yellow 10-20%
+        { start: Math.PI, end: lowEnd, color: '#22c55e' },      // Green 0-10% (bright)
+        { start: lowEnd, end: moderateEnd, color: '#eab308' },  // Yellow 10-20% (golden)
         { start: moderateEnd, end: highEnd, color: '#f97316' }, // Orange 20-30%
-        { start: highEnd, end: 0, color: '#dc2626' }            // Red 30-100%
+        { start: highEnd, end: 0, color: '#ef4444' }            // Red 30-100% (bright)
     ];
     
     zones.forEach(zone => {
@@ -724,14 +724,14 @@ function updateRiskDisplay(probability) {
         riskText = t.lowRisk;
         noteText = t.riskNoteLow;
         recs = t.recs.low;
-        riskColor = '#16a34a';
+        riskColor = '#22c55e';
         riskCard.className = 'risk-card';
     } else if (percentage < RISK_THRESHOLDS.MODERATE) {
         riskLevel = 'moderate';
         riskText = t.moderateRisk;
         noteText = t.riskNoteModerate;
         recs = t.recs.moderate;
-        riskColor = '#facc15';
+        riskColor = '#eab308';
         riskCard.className = 'risk-card moderate';
     } else if (percentage < RISK_THRESHOLDS.HIGH) {
         riskLevel = 'high';
@@ -745,7 +745,7 @@ function updateRiskDisplay(probability) {
         riskText = t.veryHighRisk;
         noteText = t.riskNoteVeryHigh;
         recs = t.recs.veryHigh;
-        riskColor = '#dc2626';
+        riskColor = '#ef4444';
         riskCard.className = 'risk-card very-high';
     }
     
