@@ -137,7 +137,9 @@ function updateUnitLabels() {
 function getCurrentUnits() { return currentUnits; }
 
 function toggleLanguage() {
+    console.log('toggleLanguage called, currentLang before:', currentLang);
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
+    console.log('currentLang after:', currentLang);
     const t = i18n[currentLang];
     
     // 更新按钮文字
@@ -167,6 +169,7 @@ function toggleLanguage() {
     document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
     
     // 更新右侧风险卡片标题和副标题
+    console.log('Updating risk-title:', t.riskCardTitle);
     document.getElementById('risk-title').textContent = t.riskCardTitle;
     document.getElementById('risk-subtitle').textContent = t.riskSubtitle;
     document.getElementById('rec-title').textContent = t.recTitle;
@@ -178,7 +181,9 @@ function toggleLanguage() {
     
     // 重新计算并更新风险显示（右侧全部内容）
     const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
+    console.log('Calling updateRiskDisplay with prob:', currentProb);
     updateRiskDisplay(currentProb || 0.124);
+    console.log('toggleLanguage complete');
 }
 
 function predictRisk(data, units) {
