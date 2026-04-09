@@ -47,7 +47,16 @@ const i18n = {
         thresholdLow: '低风险: 0-10%',
         thresholdModerate: '中风险: 10-20%',
         thresholdHigh: '高风险: 20-30%',
-        thresholdVeryHigh: '极高风险: >30%'
+        thresholdVeryHigh: '极高风险: >30%',
+        // Section titles
+        riskCardTitle: 'MACE风险评估',
+        riskSubtitle: '90天主要不良心血管事件风险',
+        recTitle: '临床建议',
+        perfTitle: '模型性能',
+        perfSubtitle: '外部验证结果',
+        evidenceTitle: '循证依据',
+        shapTitle: '风险因子贡献度',
+        shapSubtitle: '基于排列重要性分析'
     },
     en: {
         sidebarTitle: 'Patient Information', labelAge: 'Age', labelSex: 'Sex',
@@ -72,7 +81,16 @@ const i18n = {
         thresholdLow: 'Low: 0-10%',
         thresholdModerate: 'Moderate: 10-20%',
         thresholdHigh: 'High: 20-30%',
-        thresholdVeryHigh: 'Very High: >30%'
+        thresholdVeryHigh: 'Very High: >30%',
+        // Section titles
+        riskCardTitle: 'MACE Risk Assessment',
+        riskSubtitle: '90-day major adverse cardiovascular event risk',
+        recTitle: 'Clinical Recommendations',
+        perfTitle: 'Model Performance',
+        perfSubtitle: 'External validation results',
+        evidenceTitle: 'Evidence Base',
+        shapTitle: 'Risk Factor Contribution',
+        shapSubtitle: 'SHAP value analysis'
     }
 };
 
@@ -147,6 +165,16 @@ function toggleLanguage() {
     document.getElementById('threshold-moderate').textContent = t.thresholdModerate;
     document.getElementById('threshold-high').textContent = t.thresholdHigh;
     document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
+    
+    // 更新右侧风险卡片标题和副标题
+    document.getElementById('risk-title').textContent = t.riskCardTitle;
+    document.getElementById('risk-subtitle').textContent = t.riskSubtitle;
+    document.getElementById('rec-title').textContent = t.recTitle;
+    document.getElementById('perf-title').textContent = t.perfTitle;
+    document.getElementById('perf-subtitle').textContent = t.perfSubtitle;
+    document.getElementById('literature-title').textContent = t.evidenceTitle;
+    document.getElementById('features-title').textContent = t.shapTitle;
+    document.getElementById('features-subtitle').textContent = t.shapSubtitle;
     
     // 重新计算并更新风险显示（右侧全部内容）
     const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
