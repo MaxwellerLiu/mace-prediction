@@ -555,37 +555,114 @@ function updateRiskDisplay(probability) {
     recList.innerHTML = recs.map((r, i) => `<li><span class="rec-icon">${icons[i]}</span><span>${r}</span></li>`).join('');
     
     drawGauge(probability, riskText, riskColor);
-    renderSHAP(probability);
+    renderSHAP(probability, data, units);
 }
 
-function renderSHAP(probability) {
+function renderSHAP(probability, data, units) {
     const t = i18n[currentLang];
-    const features = [
-        { name: t.shapGlucose || 'Glucose', value: 0.084 },
-        { name: t.shapEGFR || 'eGFR', value: 0.065 },
-        { name: t.shapHemoglobin || 'Hemoglobin', value: 0.014 },
-        { name: t.shapAge || 'Age', value: 0.012 },
-        { name: t.shapWBC || 'WBC', value: 0.009 },
-        { name: t.shapRDW || 'RDW', value: 0.004 },
-        { name: t.shapBMI || 'BMI', value: 0.003 },
-        { name: t.shapSex || 'Sex', value: -0.002 }
+    
+    // 计算每个特征对风险评分的实际贡献
+    const age = parseFloat(data.age);
+    const sex = data.sex;
+    const bmi = parseFloat(data.bmi);
+    const creatinine = getStandardValue(data.creatinine, 'creatinine', units.creatinine);
+    const glucose = getStandardValue(data.glucose, 'glucose', units.glucose);
+    const hb = getStandardValue(data.hb, 'hemoglobin', units.hemoglobin);
+    const rdw = parseFloat(data.rdw);
+    const wbc = parseFloat(data.wbc);
+    const egfr = calculateEGFR(age, sex, creatinine);
+    
+    // 计算各特征的边际贡献（基于逻辑回归的近似SHAP值）
+    // 使用参考值（平均值/正常值）作为基线
+    const baselineScore = 0; // 基线风险评分
+    
+    // 各特征的贡献 = (特征值 - 参考值) × 系数
+    // 参考值：年龄65，性别男(0)，BMI 25，eGFR 90，血糖100，血红蛋白13.5，RDW 13，WBC 7
+    const contributions = [
+        { 
+            name: t.shapGlucose || 'Glucose', 
+            value: (glucose - 100) * 0.003,
+            raw: glucose,
+            ref: 100,
+            unit: units.glucose === 'us' ? 'mg/dL' : 'mg/dL'
+        },
+        { 
+            name: t.shapEGFR || 'eGFR', 
+            value: (140 - egfr) * 0.002, // 注意：eGFR越低风险越高
+            raw: egfr,
+            ref: 90,
+            unit: 'mL/min'
+        },
+        { 
+            name: t.shapHemoglobin || 'Hemoglobin', 
+            value: (13.5 - hb) * 0.05, // 注意：血红蛋白越低风险越高
+            raw: hb,
+            ref: 13.5,
+            unit: units.hemoglobin === 'us' ? 'g/dL' : 'g/dL'
+        },
+        { 
+            name: t.shapAge || 'Age', 
+            value: (age - 65) * 0.015,
+            raw: age,
+            ref: 65,
+            unit: 'years'
+        },
+        { 
+            name: t.shapRDW || 'RDW', 
+            value: (rdw - 13) * 0.08,
+            raw: rdw,
+            ref: 13,
+            unit: '%'
+        },
+        { 
+            name: t.shapWBC || 'WBC', 
+            value: (wbc - 7) * 0.02,
+            raw: wbc,
+            ref: 7,
+            unit: '×10⁹/L'
+        },
+        { 
+            name: t.shapBMI || 'BMI', 
+            value: (bmi - 25) * 0.02,
+            raw: bmi,
+            ref: 25,
+            unit: 'kg/m²'
+        },
+        { 
+            name: t.shapSex || 'Sex', 
+            value: sex === 'female' ? 0.03 : -0.02,
+            raw: sex === 'female' ? 'Female' : 'Male',
+            ref: 'Male',
+            unit: ''
+        }
     ];
+    
+    // 按绝对值排序
+    contributions.sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
     
     const container = document.getElementById('shap-chart');
     if (!container) return;
-    const maxVal = Math.max(...features.map(f => Math.abs(f.value)));
     
-    container.innerHTML = features.map(f => {
+    const maxVal = Math.max(...contributions.map(f => Math.abs(f.value)), 0.01);
+    
+    container.innerHTML = contributions.map(f => {
         const w = (Math.abs(f.value) / maxVal) * 100;
         const pos = f.value > 0;
+        const sign = f.value > 0 ? '+' : '';
+        // 显示实际值和参考值的对比
+        const detail = typeof f.raw === 'number' ? 
+            `${f.raw.toFixed(1)} vs ${f.ref}${f.unit ? ' ' + f.unit : ''}` :
+            `${f.raw} (ref: ${f.ref})`;
+        
         return `
             <div class="shap-bar">
-                <div class="shap-bar-label">${f.name}</div>
-                <div class="shap-bar-value">${(f.value > 0 ? '+' : '') + f.value.toFixed(3)}</div>
+                <div class="shap-bar-label" title="${detail}">${f.name}</div>
+                <div class="shap-bar-value">${sign}${f.value.toFixed(3)}</div>
                 <div class="shap-bar-track">
                     <div class="shap-bar-center"></div>
                     <div class="shap-bar-fill ${pos ? 'positive' : 'negative'}" style="width: ${w}%; ${pos ? 'margin-left: 50%' : 'margin-left: ' + (50 - w) + '%'}"></div>
                 </div>
+                <div class="shap-bar-detail">${detail}</div>
             </div>
         `;
     }).join('');

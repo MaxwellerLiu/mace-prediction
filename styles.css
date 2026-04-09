@@ -788,31 +788,30 @@ body {
 }
 
 .shap-bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 100px 50px 1fr;
+    grid-template-rows: auto auto;
+    gap: 4px 12px;
     align-items: center;
-    gap: 12px;
 }
 
 .shap-bar-label {
-    width: 100px;
     font-size: 0.82rem;
     color: var(--gray-600);
     text-align: right;
-    flex-shrink: 0;
     font-weight: 500;
+    cursor: help;
 }
 
 .shap-bar-value {
     font-size: 0.75rem;
-    color: var(--gray-400);
-    width: 50px;
-    flex-shrink: 0;
+    color: var(--gray-500);
     font-family: 'SF Mono', Monaco, monospace;
+    text-align: right;
 }
 
 .shap-bar-track {
-    flex: 1;
-    height: 24px;
+    height: 20px;
     background: var(--gray-100);
     border-radius: 4px;
     position: relative;
@@ -840,6 +839,14 @@ body {
     bottom: 0;
     width: 2px;
     background: var(--gray-300);
+}
+
+.shap-bar-detail {
+    grid-column: 3;
+    font-size: 0.7rem;
+    color: var(--gray-400);
+    text-align: right;
+    margin-top: -2px;
 }
 
 /* ============================================
