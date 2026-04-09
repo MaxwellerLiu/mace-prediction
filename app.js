@@ -56,7 +56,16 @@ const i18n = {
         perfSubtitle: '外部验证结果',
         evidenceTitle: '循证依据',
         shapTitle: '风险因子贡献度',
-        shapSubtitle: '基于排列重要性分析'
+        shapSubtitle: '基于排列重要性分析',
+        // SHAP feature names
+        shapGlucose: '血糖',
+        shapEGFR: '估算肾小球滤过率',
+        shapHemoglobin: '血红蛋白',
+        shapAge: '年龄',
+        shapWBC: '白细胞计数',
+        shapRDW: '红细胞分布宽度',
+        shapBMI: '体重指数',
+        shapSex: '性别'
     },
     en: {
         sidebarTitle: 'Patient Information', labelAge: 'Age', labelSex: 'Sex',
@@ -90,7 +99,16 @@ const i18n = {
         perfSubtitle: 'External validation results',
         evidenceTitle: 'Evidence Base',
         shapTitle: 'Risk Factor Contribution',
-        shapSubtitle: 'SHAP value analysis'
+        shapSubtitle: 'SHAP value analysis',
+        // SHAP feature names
+        shapGlucose: 'Glucose',
+        shapEGFR: 'eGFR',
+        shapHemoglobin: 'Hemoglobin',
+        shapAge: 'Age',
+        shapWBC: 'WBC',
+        shapRDW: 'RDW',
+        shapBMI: 'BMI',
+        shapSex: 'Sex'
     }
 };
 
@@ -140,44 +158,52 @@ function toggleLanguage() {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
     const t = i18n[currentLang];
     
+    // 安全更新元素的辅助函数
+    const safeUpdate = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    };
+    
     // 更新按钮文字
-    document.querySelector('.lang-btn').textContent = currentLang === 'zh' ? 'English' : '中文';
+    const btn = document.querySelector('.lang-btn');
+    if (btn) btn.textContent = currentLang === 'zh' ? 'English' : '中文';
     
     // 侧边栏
-    document.getElementById('sidebar-title').textContent = t.sidebarTitle;
-    document.getElementById('label-age').textContent = t.labelAge;
-    document.getElementById('label-sex').textContent = t.labelSex;
-    document.getElementById('opt-male').textContent = t.optMale;
-    document.getElementById('opt-female').textContent = t.optFemale;
-    document.getElementById('label-bmi').textContent = t.labelBMI;
-    document.getElementById('label-creatinine').textContent = t.labelCreatinine;
-    document.getElementById('label-glucose').textContent = t.labelGlucose;
-    document.getElementById('label-hemoglobin').textContent = t.labelHb;
-    document.getElementById('label-rdw').textContent = t.labelRDW;
-    document.getElementById('label-wbc').textContent = t.labelWBC;
-    document.getElementById('label-model').textContent = t.labelModel;
-    document.getElementById('btn-predict').textContent = t.btnPredict;
-    document.getElementById('btn-reset').textContent = t.btnReset;
-    document.getElementById('thresholds-title').textContent = t.thresholdsTitle;
+    safeUpdate('sidebar-title', t.sidebarTitle);
+    safeUpdate('label-age', t.labelAge);
+    safeUpdate('label-sex', t.labelSex);
+    safeUpdate('opt-male', t.optMale);
+    safeUpdate('opt-female', t.optFemale);
+    safeUpdate('label-bmi', t.labelBMI);
+    safeUpdate('label-creatinine', t.labelCreatinine);
+    safeUpdate('label-glucose', t.labelGlucose);
+    safeUpdate('label-hemoglobin', t.labelHb);
+    safeUpdate('label-rdw', t.labelRDW);
+    safeUpdate('label-wbc', t.labelWBC);
+    safeUpdate('label-model', t.labelModel);
+    safeUpdate('btn-predict', t.btnPredict);
+    safeUpdate('btn-reset', t.btnReset);
+    safeUpdate('thresholds-title', t.thresholdsTitle);
     
     // 更新阈值卡片
-    document.getElementById('threshold-low').textContent = t.thresholdLow;
-    document.getElementById('threshold-moderate').textContent = t.thresholdModerate;
-    document.getElementById('threshold-high').textContent = t.thresholdHigh;
-    document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
+    safeUpdate('threshold-low', t.thresholdLow);
+    safeUpdate('threshold-moderate', t.thresholdModerate);
+    safeUpdate('threshold-high', t.thresholdHigh);
+    safeUpdate('threshold-veryhigh', t.thresholdVeryHigh);
     
     // 更新右侧风险卡片标题和副标题
-    document.getElementById('risk-title').textContent = t.riskCardTitle;
-    document.getElementById('risk-subtitle').textContent = t.riskSubtitle;
-    document.getElementById('rec-title').textContent = t.recTitle;
-    document.getElementById('perf-title').textContent = t.perfTitle;
-    document.getElementById('perf-subtitle').textContent = t.perfSubtitle;
-    document.getElementById('literature-title').textContent = t.evidenceTitle;
-    document.getElementById('features-title').textContent = t.shapTitle;
-    document.getElementById('features-subtitle').textContent = t.shapSubtitle;
+    safeUpdate('risk-title', t.riskCardTitle);
+    safeUpdate('risk-subtitle', t.riskSubtitle);
+    safeUpdate('rec-title', t.recTitle);
+    safeUpdate('perf-title', t.perfTitle);
+    safeUpdate('perf-subtitle', t.perfSubtitle);
+    safeUpdate('literature-title', t.evidenceTitle);
+    safeUpdate('features-title', t.shapTitle);
+    safeUpdate('features-subtitle', t.shapSubtitle);
     
     // 重新计算并更新风险显示（右侧全部内容）
-    const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
+    const pctEl = document.getElementById('risk-percentage');
+    const currentProb = pctEl ? parseFloat(pctEl.textContent) / 100 : 0.124;
     updateRiskDisplay(currentProb || 0.124);
 }
 
@@ -455,14 +481,20 @@ function updateRiskDisplay(probability) {
 }
 
 function renderSHAP(probability) {
+    const t = i18n[currentLang];
     const features = [
-        { name: 'Glucose', value: 0.084 }, { name: 'eGFR', value: 0.065 },
-        { name: 'Hemoglobin', value: 0.014 }, { name: 'Age', value: 0.012 },
-        { name: 'WBC', value: 0.009 }, { name: 'RDW', value: 0.004 },
-        { name: 'BMI', value: 0.003 }, { name: 'Sex', value: -0.002 }
+        { name: t.shapGlucose || 'Glucose', value: 0.084 },
+        { name: t.shapEGFR || 'eGFR', value: 0.065 },
+        { name: t.shapHemoglobin || 'Hemoglobin', value: 0.014 },
+        { name: t.shapAge || 'Age', value: 0.012 },
+        { name: t.shapWBC || 'WBC', value: 0.009 },
+        { name: t.shapRDW || 'RDW', value: 0.004 },
+        { name: t.shapBMI || 'BMI', value: 0.003 },
+        { name: t.shapSex || 'Sex', value: -0.002 }
     ];
     
     const container = document.getElementById('shap-chart');
+    if (!container) return;
     const maxVal = Math.max(...features.map(f => Math.abs(f.value)));
     
     container.innerHTML = features.map(f => {
