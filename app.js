@@ -137,21 +137,14 @@ function updateUnitLabels() {
 function getCurrentUnits() { return currentUnits; }
 
 function toggleLanguage() {
-    console.log('toggleLanguage called, currentLang before:', currentLang);
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
-    console.log('currentLang after:', currentLang);
     const t = i18n[currentLang];
-    console.log('Got i18n object:', t);
     
     // 更新按钮文字
-    console.log('Updating button...');
     document.querySelector('.lang-btn').textContent = currentLang === 'zh' ? 'English' : '中文';
-    console.log('Button updated');
     
     // 侧边栏
-    console.log('Updating sidebar-title...');
     document.getElementById('sidebar-title').textContent = t.sidebarTitle;
-    console.log('Updating label-age...');
     document.getElementById('label-age').textContent = t.labelAge;
     document.getElementById('label-sex').textContent = t.labelSex;
     document.getElementById('opt-male').textContent = t.optMale;
@@ -174,7 +167,6 @@ function toggleLanguage() {
     document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
     
     // 更新右侧风险卡片标题和副标题
-    console.log('Updating risk-title:', t.riskCardTitle);
     document.getElementById('risk-title').textContent = t.riskCardTitle;
     document.getElementById('risk-subtitle').textContent = t.riskSubtitle;
     document.getElementById('rec-title').textContent = t.recTitle;
@@ -186,9 +178,7 @@ function toggleLanguage() {
     
     // 重新计算并更新风险显示（右侧全部内容）
     const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
-    console.log('Calling updateRiskDisplay with prob:', currentProb);
     updateRiskDisplay(currentProb || 0.124);
-    console.log('toggleLanguage complete');
 }
 
 function predictRisk(data, units) {
@@ -218,7 +208,7 @@ function predictRisk(data, units) {
 }
 
 // ============================================
-// GAUGE - 全圆仪表盘（360度）- 简化版
+// GAUGE - 精美全圆仪表盘（360度）
 // ============================================
 function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
@@ -233,7 +223,7 @@ function drawGauge(probability, riskLevelText, riskColor) {
     const cx = canvas.width / 2;
     const cy = canvas.height - 130;
     const r = 110;
-    const thickness = 28;
+    const thickness = 32;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -241,41 +231,41 @@ function drawGauge(probability, riskLevelText, riskColor) {
     const d2r = (d) => d * Math.PI / 180;
     
     // 0% 在底部 (90度)，顺时针增加
-    // 各区域边界角度
     const a0 = 90;      // 0% - 底部
-    const a10 = 54;     // 10% - 右下
-    const a20 = 18;     // 20% - 右
-    const a30 = -18;    // 30% - 右上
+    const a10 = 54;     // 10% 
+    const a20 = 18;     // 20% 
+    const a30 = -18;    // 30% 
     const a100 = -270;  // 100% - 回到底部
     
-    // 绘制四个区域
-    // 绿色: 90 -> 54 度 (顺时针)
+    // 外圈发光效果
     ctx.beginPath();
-    ctx.arc(cx, cy, r, d2r(a0), d2r(a10), true);
-    ctx.lineWidth = thickness;
-    ctx.strokeStyle = '#22c55e';
+    ctx.arc(cx, cy, r + 8, 0, Math.PI * 2);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
     ctx.stroke();
     
-    // 黄色: 54 -> 18 度 (顺时针)
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, d2r(a10), d2r(a20), true);
-    ctx.lineWidth = thickness;
-    ctx.strokeStyle = '#fbbf24';
-    ctx.stroke();
+    // 绘制四个区域（带渐变效果）
+    const zones = [
+        { start: a0, end: a10, color: '#22c55e', label: 'low' },
+        { start: a10, end: a20, color: '#fbbf24', label: 'moderate' },
+        { start: a20, end: a30, color: '#f97316', label: 'high' },
+        { start: a30, end: a100, color: '#ef4444', label: 'very-high' }
+    ];
     
-    // 橙色: 18 -> -18 度 (顺时针)
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, d2r(a20), d2r(a30), true);
-    ctx.lineWidth = thickness;
-    ctx.strokeStyle = '#f97316';
-    ctx.stroke();
-    
-    // 红色: -18 -> -270 度 (顺时针，经过上、左、下)
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, d2r(a30), d2r(a100), true);
-    ctx.lineWidth = thickness;
-    ctx.strokeStyle = '#ef4444';
-    ctx.stroke();
+    zones.forEach(zone => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, d2r(zone.start), d2r(zone.end), true);
+        ctx.lineWidth = thickness;
+        ctx.strokeStyle = zone.color;
+        ctx.stroke();
+        
+        // 内圈细线（增加层次感）
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - thickness/2 + 4, d2r(zone.start), d2r(zone.end), true);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.stroke();
+    });
     
     // 白色分隔线
     [a10, a20, a30].forEach(deg => {
@@ -294,78 +284,122 @@ function drawGauge(probability, riskLevelText, riskColor) {
         { pct: 10, deg: a10 },
         { pct: 20, deg: a20 },
         { pct: 30, deg: a30 },
-        { pct: 50, deg: -90 },   // 顶部
-        { pct: 75, deg: -180 },  // 左侧
+        { pct: 50, deg: -90 },
+        { pct: 75, deg: -180 },
         { pct: 100, deg: a100 }
     ];
     
     ticks.forEach(t => {
         const isMain = [0, 10, 20, 30, 100].includes(t.pct);
-        const tickLen = isMain ? 16 : 10;
+        const tickLen = isMain ? 18 : 12;
         const angle = d2r(t.deg);
         
         ctx.beginPath();
         ctx.moveTo(cx + Math.cos(angle) * (r - thickness/2 - tickLen), cy + Math.sin(angle) * (r - thickness/2 - tickLen));
         ctx.lineTo(cx + Math.cos(angle) * (r + thickness/2 + tickLen), cy + Math.sin(angle) * (r + thickness/2 + tickLen));
-        ctx.lineWidth = isMain ? 3 : 2;
-        ctx.strokeStyle = '#374151';
+        ctx.lineWidth = isMain ? 4 : 2;
+        ctx.strokeStyle = isMain ? '#4b5563' : '#9ca3af';
         ctx.stroke();
         
-        const labelR = r + thickness/2 + 30;
-        ctx.font = isMain ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
-        ctx.fillStyle = '#374151';
+        const labelR = r + thickness/2 + 28;
+        ctx.font = isMain ? 'bold 13px sans-serif' : '11px sans-serif';
+        ctx.fillStyle = isMain ? '#374151' : '#6b7280';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(t.pct + '%', cx + Math.cos(angle) * labelR, cy + Math.sin(angle) * labelR);
     });
     
-    // 指针角度: 0%=90度，100%=-270度
+    // 指针角度计算
     const needleDeg = 90 - 360 * probability;
     const needleAngle = d2r(needleDeg);
-    const needleLen = r - thickness/2 - 10;
+    const needleLen = r - thickness/2 - 15;
+    
+    // 指针底座（圆形）
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#d1d5db';
+    ctx.stroke();
     
     // 指针阴影
     ctx.beginPath();
-    ctx.moveTo(cx + 2, cy + 2);
-    ctx.lineTo(cx + 2 + Math.cos(needleAngle) * needleLen, cy + 2 + Math.sin(needleAngle) * needleLen);
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.moveTo(cx + 3, cy + 3);
+    ctx.lineTo(cx + 3 + Math.cos(needleAngle) * needleLen, cy + 3 + Math.sin(needleAngle) * needleLen);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // 指针主体
+    // 指针主体（加粗）
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(needleAngle) * needleLen, cy + Math.sin(needleAngle) * needleLen);
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 8;
     ctx.strokeStyle = '#1f2937';
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // 中心圆点
+    // 指针高光
     ctx.beginPath();
-    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-    ctx.fillStyle = '#1f2937';
-    ctx.fill();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#fff';
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(needleAngle) * needleLen, cy + Math.sin(needleAngle) * needleLen);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#4b5563';
+    ctx.lineCap = 'round';
     ctx.stroke();
     
-    // 中心文字
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx - 70, cy - 60, 140, 65);
-    
-    ctx.font = 'bold 44px sans-serif';
+    // 中心圆点（三层）
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
     ctx.fillStyle = '#1f2937';
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    ctx.fillStyle = '#4b5563';
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fill();
+    
+    // 中心白色背景区域（圆角矩形）
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.roundRect(cx - 75, cy - 65, 150, 70, 12);
+    ctx.fill();
+    
+    // 中心区域阴影
+    ctx.beginPath();
+    ctx.roundRect(cx - 75, cy - 65, 150, 70, 12);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+    ctx.stroke();
+    
+    // 中心大数字
+    ctx.font = 'bold 48px sans-serif';
+    ctx.fillStyle = riskColor || '#1f2937';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', cx, cy - 35);
+    ctx.fillText(percentage + '%', cx, cy - 32);
     
+    // 风险等级文字
     if (riskLevelText) {
-        ctx.font = 'bold 14px sans-serif';
+        ctx.font = 'bold 13px sans-serif';
         ctx.fillStyle = riskColor || '#6b7280';
-        ctx.fillText(riskLevelText, cx, cy - 12);
+        ctx.fillText(riskLevelText, cx, cy - 8);
     }
+    
+    // 指针尖端高亮
+    const tipX = cx + Math.cos(needleAngle) * needleLen;
+    const tipY = cy + Math.sin(needleAngle) * needleLen;
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fill();
 }
 
 // ============================================
