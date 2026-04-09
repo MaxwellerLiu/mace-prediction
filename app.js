@@ -29,6 +29,7 @@ const i18n = {
         optMale: '男', optFemale: '女', labelBMI: 'BMI (kg/m²)', unitAge: '岁',
         labelCreatinine: '肌酐', labelGlucose: '血糖', labelHb: '血红蛋白',
         labelRDW: '红细胞分布宽度', labelWBC: '白细胞计数',
+        egfrLabel: '估算肾小球滤过率 (eGFR)', egfrUnit: 'mL/min/1.73m²',
         labelModel: '预测模型', btnPredict: '计算风险', btnReset: '重置',
         optNB: '朴素贝叶斯 (推荐)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: '风险等级', lowRisk: '低风险', moderateRisk: '中风险',
@@ -76,6 +77,7 @@ const i18n = {
         optMale: 'Male', optFemale: 'Female', labelBMI: 'BMI (kg/m²)', unitAge: 'years',
         labelCreatinine: 'Creatinine', labelGlucose: 'Glucose', labelHb: 'Hemoglobin',
         labelRDW: 'RDW', labelWBC: 'WBC',
+        egfrLabel: 'Estimated GFR (eGFR)', egfrUnit: 'mL/min/1.73m²',
         labelModel: 'Model', btnPredict: 'Calculate Risk', btnReset: 'Reset',
         optNB: 'Naive Bayes (Recommended)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: 'Risk Level', lowRisk: 'Low Risk', moderateRisk: 'Moderate Risk',
@@ -132,6 +134,62 @@ function calculateEGFR(age, sex, creatinineMgDl) {
     const alpha = sex === 'female' ? -0.241 : -0.302;
     const ff = sex === 'female' ? 1.012 : 1;
     return 142 * Math.min(creatinineMgDl/kappa, 1)**alpha * Math.max(creatinineMgDl/kappa, 1)**(-1.200) * 0.9938**age * ff;
+}
+
+// 计算并显示eGFR和肾功能分期
+function calculateEGFRDisplay() {
+    const age = parseFloat(document.getElementById('age').value);
+    const sex = document.getElementById('sex').value === '1' ? 'male' : 'female';
+    const creatinine = parseFloat(document.getElementById('creatinine').value);
+    const unit = document.getElementById('creatinine-unit').value;
+    
+    if (!age || !creatinine) {
+        alert(currentLang === 'zh' ? '请先输入年龄和肌酐值' : 'Please enter age and creatinine first');
+        return;
+    }
+    
+    // 转换为mg/dL
+    const creatinineMgDl = unit === 'metric' ? creatinine / 88.4 : creatinine;
+    const egfr = calculateEGFR(age, sex, creatinineMgDl);
+    
+    // 显示结果
+    document.getElementById('egfr-value').textContent = egfr.toFixed(1);
+    document.getElementById('egfr-result').classList.remove('hidden');
+    
+    // 确定肾功能分期
+    let stage = '';
+    let stageClass = '';
+    if (egfr >= 90) {
+        stage = currentLang === 'zh' ? 'G1期 (正常或高)' : 'G1 (Normal or High)';
+        stageClass = 'stage-g1';
+    } else if (egfr >= 60) {
+        stage = currentLang === 'zh' ? 'G2期 (轻度下降)' : 'G2 (Mildly Decreased)';
+        stageClass = 'stage-g2';
+    } else if (egfr >= 45) {
+        stage = currentLang === 'zh' ? 'G3a期 (轻-中度下降)' : 'G3a (Mild-Moderate)';
+        stageClass = 'stage-g3';
+    } else if (egfr >= 30) {
+        stage = currentLang === 'zh' ? 'G3b期 (中-重度下降)' : 'G3b (Moderate-Severe)';
+        stageClass = 'stage-g3';
+    } else if (egfr >= 15) {
+        stage = currentLang === 'zh' ? 'G4期 (重度下降)' : 'G4 (Severely Decreased)';
+        stageClass = 'stage-g4';
+    } else {
+        stage = currentLang === 'zh' ? 'G5期 (肾衰竭)' : 'G5 (Kidney Failure)';
+        stageClass = 'stage-g5';
+    }
+    
+    const stageEl = document.getElementById('egfr-stage');
+    stageEl.textContent = stage;
+    stageEl.className = 'egfr-stage ' + stageClass;
+}
+
+// 当性别改变时更新eGFR显示
+function updateEGFRDisplay() {
+    const egfrResult = document.getElementById('egfr-result');
+    if (!egfrResult.classList.contains('hidden')) {
+        calculateEGFRDisplay();
+    }
 }
 
 function mgDlToMmolL(v) { return v / 18; }
@@ -193,6 +251,7 @@ function toggleLanguage() {
     safeUpdate('label-hemoglobin', t.labelHb);
     safeUpdate('label-rdw', t.labelRDW);
     safeUpdate('label-wbc', t.labelWBC);
+    safeUpdate('egfr-label', t.egfrLabel);
     safeUpdate('label-model', t.labelModel);
     safeUpdate('opt-nb', t.optNB);
     safeUpdate('opt-lgbm', t.optLightGBM);
