@@ -70,7 +70,7 @@
 
                 <!-- BMI Section -->
                 <div class="input-group">
-                    <label>BMI (kg/m²)</label>
+                    <label id="label-bmi">BMI (kg/m²)</label>
                     <div class="bmi-inputs">
                         <input type="number" id="height" placeholder="身高 (cm)" min="100" max="250" value="170" oninput="calculateBMI()">
                         <input type="number" id="weight" placeholder="体重 (kg)" min="30" max="200" step="0.1" value="71" oninput="calculateBMI()">
@@ -122,9 +122,9 @@
                 <div class="input-group">
                     <label id="label-model">预测模型</label>
                     <select id="model-select">
-                        <option value="NB" selected>朴素贝叶斯 (推荐)</option>
-                        <option value="LightGBM">LightGBM</option>
-                        <option value="XGBoost">XGBoost</option>
+                        <option value="NB" selected id="opt-nb">朴素贝叶斯 (推荐)</option>
+                        <option value="LightGBM" id="opt-lgbm">LightGBM</option>
+                        <option value="XGBoost" id="opt-xgb">XGBoost</option>
                     </select>
                 </div>
 
@@ -306,6 +306,6 @@
         </main>
     </div>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>

@@ -26,10 +26,11 @@ const UNIT_SYSTEMS = {
 const i18n = {
     zh: {
         sidebarTitle: '患者信息', labelAge: '年龄', labelSex: '性别',
-        optMale: '男', optFemale: '女', labelBMI: 'BMI',
+        optMale: '男', optFemale: '女', labelBMI: 'BMI (kg/m²)',
         labelCreatinine: '肌酐', labelGlucose: '血糖', labelHb: '血红蛋白',
         labelRDW: '红细胞分布宽度', labelWBC: '白细胞计数',
         labelModel: '预测模型', btnPredict: '计算风险', btnReset: '重置',
+        optNB: '朴素贝叶斯 (推荐)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: '风险等级', lowRisk: '低风险', moderateRisk: '中风险',
         highRisk: '高风险', veryHighRisk: '极高风险',
         thresholdsTitle: '风险分层标准',
@@ -69,10 +70,11 @@ const i18n = {
     },
     en: {
         sidebarTitle: 'Patient Information', labelAge: 'Age', labelSex: 'Sex',
-        optMale: 'Male', optFemale: 'Female', labelBMI: 'BMI',
+        optMale: 'Male', optFemale: 'Female', labelBMI: 'BMI (kg/m²)',
         labelCreatinine: 'Creatinine', labelGlucose: 'Glucose', labelHb: 'Hemoglobin',
         labelRDW: 'RDW', labelWBC: 'WBC',
         labelModel: 'Model', btnPredict: 'Calculate Risk', btnReset: 'Reset',
+        optNB: 'Naive Bayes (Recommended)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: 'Risk Level', lowRisk: 'Low Risk', moderateRisk: 'Moderate Risk',
         highRisk: 'High Risk', veryHighRisk: 'Very High Risk',
         thresholdsTitle: 'Risk Stratification',
@@ -181,6 +183,9 @@ function toggleLanguage() {
     safeUpdate('label-rdw', t.labelRDW);
     safeUpdate('label-wbc', t.labelWBC);
     safeUpdate('label-model', t.labelModel);
+    safeUpdate('opt-nb', t.optNB);
+    safeUpdate('opt-lgbm', t.optLightGBM);
+    safeUpdate('opt-xgb', t.optXGBoost);
     safeUpdate('btn-predict', t.btnPredict);
     safeUpdate('btn-reset', t.btnReset);
     safeUpdate('thresholds-title', t.thresholdsTitle);
