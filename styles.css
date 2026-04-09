@@ -273,6 +273,17 @@ body {
     display: inline-block;
 }
 
+.egfr-note {
+    font-size: 0.65rem;
+    color: var(--gray-500);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--gray-300);
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
 .egfr-stage.stage-1 { background: #dcfce7; color: #15803d; }
 .egfr-stage.stage-2 { background: #fef9c3; color: #a16207; }
 .egfr-stage.stage-3a { background: #ffedd5; color: #c2410c; }

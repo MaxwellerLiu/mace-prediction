@@ -30,6 +30,7 @@ const i18n = {
         labelCreatinine: '肌酐', labelGlucose: '血糖', labelHb: '血红蛋白',
         labelRDW: '红细胞分布宽度', labelWBC: '白细胞计数',
         egfrLabel: '估算肾小球滤过率 (eGFR)', egfrUnit: 'mL/min/1.73m²',
+        egfrNote: 'CKD-EPI 2021 | KDIGO 2012',
         labelModel: '预测模型', btnPredict: '计算风险', btnReset: '重置',
         optNB: '朴素贝叶斯 (推荐)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: '风险等级', lowRisk: '低风险', moderateRisk: '中风险',
@@ -78,6 +79,7 @@ const i18n = {
         labelCreatinine: 'Creatinine', labelGlucose: 'Glucose', labelHb: 'Hemoglobin',
         labelRDW: 'RDW', labelWBC: 'WBC',
         egfrLabel: 'Estimated GFR (eGFR)', egfrUnit: 'mL/min/1.73m²',
+        egfrNote: 'CKD-EPI 2021 | KDIGO 2012',
         labelModel: 'Model', btnPredict: 'Calculate Risk', btnReset: 'Reset',
         optNB: 'Naive Bayes (Recommended)', optLightGBM: 'LightGBM', optXGBoost: 'XGBoost',
         riskTitle: 'Risk Level', lowRisk: 'Low Risk', moderateRisk: 'Moderate Risk',
@@ -252,6 +254,7 @@ function toggleLanguage() {
     safeUpdate('label-rdw', t.labelRDW);
     safeUpdate('label-wbc', t.labelWBC);
     safeUpdate('egfr-label', t.egfrLabel);
+    safeUpdate('egfr-note', t.egfrNote);
     safeUpdate('label-model', t.labelModel);
     safeUpdate('opt-nb', t.optNB);
     safeUpdate('opt-lgbm', t.optLightGBM);
