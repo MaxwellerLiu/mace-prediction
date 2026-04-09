@@ -141,9 +141,12 @@ function toggleLanguage() {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
     console.log('currentLang after:', currentLang);
     const t = i18n[currentLang];
+    console.log('Got i18n object:', t);
     
     // 更新按钮文字
+    console.log('Updating button...');
     document.querySelector('.lang-btn').textContent = currentLang === 'zh' ? 'English' : '中文';
+    console.log('Button updated');
     
     // 侧边栏
     document.getElementById('sidebar-title').textContent = t.sidebarTitle;
