@@ -135,51 +135,68 @@ function predictRisk(data, units) {
 }
 
 // ============================================
-// GAUGE - Clean Implementation
+// GAUGE - 全圆仪表盘（360度）- 简化版
 // ============================================
 function drawGauge(probability, riskLevelText, riskColor) {
     const canvas = document.getElementById('gaugeCanvas');
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     const percentage = Math.round(probability * 100);
     
-    // Canvas size
     canvas.width = 500;
-    canvas.height = 280;
+    canvas.height = 380;
     
     const cx = canvas.width / 2;
-    const cy = canvas.height - 40;
-    const r = 170;
-    const thickness = 35;
+    const cy = canvas.height - 130;
+    const r = 110;
+    const thickness = 28;
     
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Angle mapping: 0% = Math.PI (180°, left), 100% = 0 (0°, right)
-    // Zone boundaries:
-    // 0-10%: Math.PI to Math.PI*0.9
-    // 10-20%: Math.PI*0.9 to Math.PI*0.8
-    // 20-30%: Math.PI*0.8 to Math.PI*0.7
-    // 30-100%: Math.PI*0.7 to 0
+    // 转换为弧度
+    const d2r = (d) => d * Math.PI / 180;
     
-    const zones = [
-        { start: Math.PI, end: Math.PI * 0.9, color: '#22c55e', label: 'Low' },      // 0-10% Green
-        { start: Math.PI * 0.9, end: Math.PI * 0.8, color: '#fbbf24', label: 'Mod' }, // 10-20% Yellow
-        { start: Math.PI * 0.8, end: Math.PI * 0.7, color: '#f97316', label: 'High' }, // 20-30% Orange
-        { start: Math.PI * 0.7, end: 0, color: '#ef4444', label: 'VHigh' }            // 30-100% Red
-    ];
+    // 0% 在底部 (90度)，顺时针增加
+    // 各区域边界角度
+    const a0 = 90;      // 0% - 底部
+    const a10 = 54;     // 10% - 右下
+    const a20 = 18;     // 20% - 右
+    const a30 = -18;    // 30% - 右上
+    const a100 = -270;  // 100% - 回到底部
     
-    // Draw each zone as a thick arc
-    zones.forEach(z => {
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, z.start, z.end);
-        ctx.lineWidth = thickness;
-        ctx.strokeStyle = z.color;
-        ctx.lineCap = 'butt';
-        ctx.stroke();
-    });
+    // 绘制四个区域
+    // 绿色: 90 -> 54 度 (顺时针)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, d2r(a0), d2r(a10), true);
+    ctx.lineWidth = thickness;
+    ctx.strokeStyle = '#22c55e';
+    ctx.stroke();
     
-    // White separators at boundaries (10%, 20%, 30%)
-    const separators = [Math.PI * 0.9, Math.PI * 0.8, Math.PI * 0.7];
-    separators.forEach(angle => {
+    // 黄色: 54 -> 18 度 (顺时针)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, d2r(a10), d2r(a20), true);
+    ctx.lineWidth = thickness;
+    ctx.strokeStyle = '#fbbf24';
+    ctx.stroke();
+    
+    // 橙色: 18 -> -18 度 (顺时针)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, d2r(a20), d2r(a30), true);
+    ctx.lineWidth = thickness;
+    ctx.strokeStyle = '#f97316';
+    ctx.stroke();
+    
+    // 红色: -18 -> -270 度 (顺时针，经过上、左、下)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, d2r(a30), d2r(a100), true);
+    ctx.lineWidth = thickness;
+    ctx.strokeStyle = '#ef4444';
+    ctx.stroke();
+    
+    // 白色分隔线
+    [a10, a20, a30].forEach(deg => {
+        const angle = d2r(deg);
         ctx.beginPath();
         ctx.moveTo(cx + Math.cos(angle) * (r - thickness/2 - 2), cy + Math.sin(angle) * (r - thickness/2 - 2));
         ctx.lineTo(cx + Math.cos(angle) * (r + thickness/2 + 2), cy + Math.sin(angle) * (r + thickness/2 + 2));
@@ -188,44 +205,43 @@ function drawGauge(probability, riskLevelText, riskColor) {
         ctx.stroke();
     });
     
-    // Tick marks and labels
+    // 刻度标记
     const ticks = [
-        { pct: 0, angle: Math.PI },
-        { pct: 10, angle: Math.PI * 0.9 },
-        { pct: 20, angle: Math.PI * 0.8 },
-        { pct: 30, angle: Math.PI * 0.7 },
-        { pct: 50, angle: Math.PI * 0.5 },
-        { pct: 75, angle: Math.PI * 0.25 },
-        { pct: 100, angle: 0 }
+        { pct: 0, deg: a0 },
+        { pct: 10, deg: a10 },
+        { pct: 20, deg: a20 },
+        { pct: 30, deg: a30 },
+        { pct: 50, deg: -90 },   // 顶部
+        { pct: 75, deg: -180 },  // 左侧
+        { pct: 100, deg: a100 }
     ];
     
     ticks.forEach(t => {
         const isMain = [0, 10, 20, 30, 100].includes(t.pct);
         const tickLen = isMain ? 16 : 10;
+        const angle = d2r(t.deg);
         
-        // Draw tick
         ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(t.angle) * (r - thickness/2 - tickLen), cy + Math.sin(t.angle) * (r - thickness/2 - tickLen));
-        ctx.lineTo(cx + Math.cos(t.angle) * (r + thickness/2 + tickLen), cy + Math.sin(t.angle) * (r + thickness/2 + tickLen));
+        ctx.moveTo(cx + Math.cos(angle) * (r - thickness/2 - tickLen), cy + Math.sin(angle) * (r - thickness/2 - tickLen));
+        ctx.lineTo(cx + Math.cos(angle) * (r + thickness/2 + tickLen), cy + Math.sin(angle) * (r + thickness/2 + tickLen));
         ctx.lineWidth = isMain ? 3 : 2;
         ctx.strokeStyle = '#374151';
         ctx.stroke();
         
-        // Draw label
         const labelR = r + thickness/2 + 30;
         ctx.font = isMain ? 'bold 14px sans-serif' : 'bold 11px sans-serif';
         ctx.fillStyle = '#374151';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(t.pct + '%', cx + Math.cos(t.angle) * labelR, cy + Math.sin(t.angle) * labelR);
+        ctx.fillText(t.pct + '%', cx + Math.cos(angle) * labelR, cy + Math.sin(angle) * labelR);
     });
     
-    // Needle pointing to probability
-    // probability 0.12 -> angle = Math.PI * (1 - 0.12) = Math.PI * 0.88
-    const needleAngle = Math.PI * (1 - probability);
+    // 指针角度: 0%=90度，100%=-270度
+    const needleDeg = 90 - 360 * probability;
+    const needleAngle = d2r(needleDeg);
     const needleLen = r - thickness/2 - 10;
     
-    // Needle shadow
+    // 指针阴影
     ctx.beginPath();
     ctx.moveTo(cx + 2, cy + 2);
     ctx.lineTo(cx + 2 + Math.cos(needleAngle) * needleLen, cy + 2 + Math.sin(needleAngle) * needleLen);
@@ -234,7 +250,7 @@ function drawGauge(probability, riskLevelText, riskColor) {
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Needle body
+    // 指针主体
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + Math.cos(needleAngle) * needleLen, cy + Math.sin(needleAngle) * needleLen);
@@ -243,7 +259,7 @@ function drawGauge(probability, riskLevelText, riskColor) {
     ctx.lineCap = 'round';
     ctx.stroke();
     
-    // Center dot
+    // 中心圆点
     ctx.beginPath();
     ctx.arc(cx, cy, 12, 0, Math.PI * 2);
     ctx.fillStyle = '#1f2937';
@@ -252,22 +268,20 @@ function drawGauge(probability, riskLevelText, riskColor) {
     ctx.strokeStyle = '#fff';
     ctx.stroke();
     
-    // Center text background
+    // 中心文字
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx - 70, cy - 70, 140, 75);
+    ctx.fillRect(cx - 70, cy - 60, 140, 65);
     
-    // Percentage
     ctx.font = 'bold 44px sans-serif';
     ctx.fillStyle = '#1f2937';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(percentage + '%', cx, cy - 45);
+    ctx.fillText(percentage + '%', cx, cy - 35);
     
-    // Risk level text
     if (riskLevelText) {
         ctx.font = 'bold 14px sans-serif';
         ctx.fillStyle = riskColor || '#6b7280';
-        ctx.fillText(riskLevelText, cx, cy - 20);
+        ctx.fillText(riskLevelText, cx, cy - 12);
     }
 }
 
