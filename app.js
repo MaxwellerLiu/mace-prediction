@@ -32,7 +32,22 @@ const i18n = {
         labelModel: '预测模型', btnPredict: '计算风险', btnReset: '重置',
         riskTitle: '风险等级', lowRisk: '低风险', moderateRisk: '中风险',
         highRisk: '高风险', veryHighRisk: '极高风险',
-        thresholdsTitle: '风险分层标准'
+        thresholdsTitle: '风险分层标准',
+        // 风险说明
+        lowNote: '建议标准治疗',
+        moderateNote: '建议加强监测',
+        highNote: '建议积极治疗',
+        veryHighNote: '建议紧急治疗',
+        // 推荐列表
+        lowRecs: ['标准抗血小板治疗', '定期随访', '风险控制', '生活方式干预'],
+        moderateRecs: ['强化抗血小板治疗', '密切随访', '优化药物治疗', '心脏康复'],
+        highRecs: ['双联抗血小板治疗', '严密监测', '二级预防', '专科会诊'],
+        veryHighRecs: ['强化治疗方案', '住院治疗', '多学科协作', '个体化管理'],
+        // 阈值说明
+        thresholdLow: '低风险: 0-10%',
+        thresholdModerate: '中风险: 10-20%',
+        thresholdHigh: '高风险: 20-30%',
+        thresholdVeryHigh: '极高风险: >30%'
     },
     en: {
         sidebarTitle: 'Patient Information', labelAge: 'Age', labelSex: 'Sex',
@@ -42,7 +57,22 @@ const i18n = {
         labelModel: 'Model', btnPredict: 'Calculate Risk', btnReset: 'Reset',
         riskTitle: 'Risk Level', lowRisk: 'Low Risk', moderateRisk: 'Moderate Risk',
         highRisk: 'High Risk', veryHighRisk: 'Very High Risk',
-        thresholdsTitle: 'Risk Stratification'
+        thresholdsTitle: 'Risk Stratification',
+        // Risk notes
+        lowNote: 'Standard treatment recommended',
+        moderateNote: 'Enhanced monitoring recommended',
+        highNote: 'Aggressive treatment recommended',
+        veryHighNote: 'Urgent treatment recommended',
+        // Recommendations
+        lowRecs: ['Standard antiplatelet', 'Regular follow-up', 'Risk control', 'Lifestyle'],
+        moderateRecs: ['Intensified therapy', 'Frequent follow-up', 'Optimize meds', 'Cardiac rehab'],
+        highRecs: ['Dual antiplatelet', 'Close monitoring', 'Secondary prevention', 'Specialist referral'],
+        veryHighRecs: ['Intensive therapy', 'Hospitalization', 'Multidisciplinary', 'Individualized'],
+        // Thresholds
+        thresholdLow: 'Low: 0-10%',
+        thresholdModerate: 'Moderate: 10-20%',
+        thresholdHigh: 'High: 20-30%',
+        thresholdVeryHigh: 'Very High: >30%'
     }
 };
 
@@ -91,6 +121,11 @@ function getCurrentUnits() { return currentUnits; }
 function toggleLanguage() {
     currentLang = currentLang === 'zh' ? 'en' : 'zh';
     const t = i18n[currentLang];
+    
+    // 更新按钮文字
+    document.querySelector('.lang-btn').textContent = currentLang === 'zh' ? 'English' : '中文';
+    
+    // 侧边栏
     document.getElementById('sidebar-title').textContent = t.sidebarTitle;
     document.getElementById('label-age').textContent = t.labelAge;
     document.getElementById('label-sex').textContent = t.labelSex;
@@ -106,6 +141,16 @@ function toggleLanguage() {
     document.getElementById('btn-predict').textContent = t.btnPredict;
     document.getElementById('btn-reset').textContent = t.btnReset;
     document.getElementById('thresholds-title').textContent = t.thresholdsTitle;
+    
+    // 更新阈值卡片
+    document.getElementById('threshold-low').textContent = t.thresholdLow;
+    document.getElementById('threshold-moderate').textContent = t.thresholdModerate;
+    document.getElementById('threshold-high').textContent = t.thresholdHigh;
+    document.getElementById('threshold-veryhigh').textContent = t.thresholdVeryHigh;
+    
+    // 重新计算并更新风险显示（右侧全部内容）
+    const currentProb = parseFloat(document.getElementById('risk-percentage').textContent) / 100;
+    updateRiskDisplay(currentProb || 0.124);
 }
 
 function predictRisk(data, units) {
@@ -297,31 +342,31 @@ function updateRiskDisplay(probability) {
     const pctEl = document.getElementById('risk-percentage');
     const noteEl = document.getElementById('risk-note');
     const recList = document.getElementById('rec-list');
-    
+
     let riskText, noteText, recs, riskColor;
     
     if (pct < RISK_THRESHOLDS.LOW) {
         riskText = t.lowRisk;
-        noteText = 'Standard treatment recommended';
-        recs = ['Standard antiplatelet', 'Regular follow-up', 'Risk control', 'Lifestyle'];
+        noteText = t.lowNote;
+        recs = t.lowRecs;
         riskColor = '#22c55e';
         riskCard.className = 'risk-card';
     } else if (pct < RISK_THRESHOLDS.MODERATE) {
         riskText = t.moderateRisk;
-        noteText = 'Enhanced monitoring recommended';
-        recs = ['Intensified therapy', 'Frequent follow-up', 'Optimize meds', 'Cardiac rehab'];
+        noteText = t.moderateNote;
+        recs = t.moderateRecs;
         riskColor = '#fbbf24';
         riskCard.className = 'risk-card moderate';
     } else if (pct < RISK_THRESHOLDS.HIGH) {
         riskText = t.highRisk;
-        noteText = 'Aggressive treatment recommended';
-        recs = ['Dual antiplatelet', 'Close monitoring', 'Secondary prevention', 'Specialist referral'];
+        noteText = t.highNote;
+        recs = t.highRecs;
         riskColor = '#f97316';
         riskCard.className = 'risk-card high';
     } else {
         riskText = t.veryHighRisk;
-        noteText = 'Urgent treatment recommended';
-        recs = ['Intensive therapy', 'Hospitalization', 'Multidisciplinary', 'Individualized'];
+        noteText = t.veryHighNote;
+        recs = t.veryHighRecs;
         riskColor = '#ef4444';
         riskCard.className = 'risk-card very-high';
     }
@@ -335,8 +380,6 @@ function updateRiskDisplay(probability) {
     
     drawGauge(probability, riskText, riskColor);
     renderSHAP(probability);
-    
-    document.querySelector('.gauge-with-thresholds').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function renderSHAP(probability) {
