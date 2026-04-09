@@ -10,8 +10,8 @@
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <h1>MACE风险预测</h1>
-            <span class="header-subtitle">STEMI患者PCI术后90天MACE风险预测模型</span>
+            <h1 id="page-title">MACE风险预测</h1>
+            <span class="header-subtitle" id="page-subtitle">STEMI患者PCI术后90天MACE风险预测模型</span>
         </div>
         <button class="lang-btn" onclick="toggleLanguage()">English</button>
     </header>
@@ -54,7 +54,7 @@
                 <div class="input-group">
                     <div class="input-label-row">
                         <label id="label-age">年龄</label>
-                        <span class="unit-hint">岁</span>
+                        <span class="unit-hint" id="unit-age">岁</span>
                     </div>
                     <input type="number" id="age" min="18" max="120" value="68" required onchange="updateEGFRDisplay()">
                 </div>
@@ -306,6 +306,6 @@
         </main>
     </div>
 
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
 </body>
 </html>

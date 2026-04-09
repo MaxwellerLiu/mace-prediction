@@ -26,7 +26,7 @@ const UNIT_SYSTEMS = {
 const i18n = {
     zh: {
         sidebarTitle: '患者信息', labelAge: '年龄', labelSex: '性别',
-        optMale: '男', optFemale: '女', labelBMI: 'BMI (kg/m²)',
+        optMale: '男', optFemale: '女', labelBMI: 'BMI (kg/m²)', unitAge: '岁',
         labelCreatinine: '肌酐', labelGlucose: '血糖', labelHb: '血红蛋白',
         labelRDW: '红细胞分布宽度', labelWBC: '白细胞计数',
         labelModel: '预测模型', btnPredict: '计算风险', btnReset: '重置',
@@ -49,6 +49,9 @@ const i18n = {
         thresholdModerate: '中风险: 10-20%',
         thresholdHigh: '高风险: 20-30%',
         thresholdVeryHigh: '极高风险: >30%',
+        // Page header
+        pageTitle: 'MACE风险预测',
+        pageSubtitle: 'STEMI患者PCI术后90天MACE风险预测模型',
         // Section titles
         riskCardTitle: 'MACE风险评估',
         riskSubtitle: '90天主要不良心血管事件风险',
@@ -70,7 +73,7 @@ const i18n = {
     },
     en: {
         sidebarTitle: 'Patient Information', labelAge: 'Age', labelSex: 'Sex',
-        optMale: 'Male', optFemale: 'Female', labelBMI: 'BMI (kg/m²)',
+        optMale: 'Male', optFemale: 'Female', labelBMI: 'BMI (kg/m²)', unitAge: 'years',
         labelCreatinine: 'Creatinine', labelGlucose: 'Glucose', labelHb: 'Hemoglobin',
         labelRDW: 'RDW', labelWBC: 'WBC',
         labelModel: 'Model', btnPredict: 'Calculate Risk', btnReset: 'Reset',
@@ -93,6 +96,9 @@ const i18n = {
         thresholdModerate: 'Moderate: 10-20%',
         thresholdHigh: 'High: 20-30%',
         thresholdVeryHigh: 'Very High: >30%',
+        // Page header
+        pageTitle: 'MACE Risk Prediction',
+        pageSubtitle: 'STEMI Post-PCI 90-Day MACE Risk Prediction Model',
         // Section titles
         riskCardTitle: 'MACE Risk Assessment',
         riskSubtitle: '90-day major adverse cardiovascular event risk',
@@ -170,9 +176,14 @@ function toggleLanguage() {
     const btn = document.querySelector('.lang-btn');
     if (btn) btn.textContent = currentLang === 'zh' ? 'English' : '中文';
     
+    // 页面标题
+    safeUpdate('page-title', t.pageTitle);
+    safeUpdate('page-subtitle', t.pageSubtitle);
+    
     // 侧边栏
     safeUpdate('sidebar-title', t.sidebarTitle);
     safeUpdate('label-age', t.labelAge);
+    safeUpdate('unit-age', t.unitAge);
     safeUpdate('label-sex', t.labelSex);
     safeUpdate('opt-male', t.optMale);
     safeUpdate('opt-female', t.optFemale);
