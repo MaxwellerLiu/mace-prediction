@@ -149,7 +149,9 @@ function toggleLanguage() {
     console.log('Button updated');
     
     // 侧边栏
+    console.log('Updating sidebar-title...');
     document.getElementById('sidebar-title').textContent = t.sidebarTitle;
+    console.log('Updating label-age...');
     document.getElementById('label-age').textContent = t.labelAge;
     document.getElementById('label-sex').textContent = t.labelSex;
     document.getElementById('opt-male').textContent = t.optMale;
