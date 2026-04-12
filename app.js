@@ -286,6 +286,8 @@ function toggleLanguage() {
 }
 
 function predictRisk(data, units) {
+    console.log('=== predictRisk input ===', data, units);
+    
     const age = parseFloat(data.age);
     const sex = data.sex;
     const bmi = parseFloat(data.bmi);
@@ -294,6 +296,8 @@ function predictRisk(data, units) {
     const hb = getStandardValue(data.hb, 'hemoglobin', units.hemoglobin);
     const rdw = parseFloat(data.rdw);
     const wbc = parseFloat(data.wbc);
+    
+    console.log('Parsed values:', { age, sex, bmi, creatinine, glucose, hb, rdw, wbc });
     
     const egfr = calculateEGFR(age, sex, creatinine);
     
@@ -307,7 +311,11 @@ function predictRisk(data, units) {
     riskScore += (rdw - 13) * 0.08;
     riskScore += (wbc - 7) * 0.02;
     
+    console.log('Risk score:', riskScore);
+    
     let prob = 1 / (1 + Math.exp(-(riskScore - 0.35) * 3));
+    console.log('Raw prob:', prob, 'Clamped prob:', Math.max(0.02, Math.min(0.85, prob)));
+    
     return Math.max(0.02, Math.min(0.85, prob));
 }
 
