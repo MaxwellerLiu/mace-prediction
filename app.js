@@ -555,7 +555,19 @@ function updateRiskDisplay(probability) {
     recList.innerHTML = recs.map((r, i) => `<li><span class="rec-icon">${icons[i]}</span><span>${r}</span></li>`).join('');
     
     drawGauge(probability, riskText, riskColor);
-    renderSHAP(probability, data, units);
+    
+    // 获取当前表单数据用于SHAP分析
+    const data = {
+        age: document.getElementById('age').value,
+        sex: document.getElementById('sex').value === '1' ? 'male' : 'female',
+        bmi: document.getElementById('bmi').value,
+        creatinine: document.getElementById('creatinine').value,
+        glucose: document.getElementById('glucose').value,
+        hb: document.getElementById('hb').value,
+        rdw: document.getElementById('rdw').value,
+        wbc: document.getElementById('wbc').value
+    };
+    renderSHAP(probability, data, currentUnits);
 }
 
 function renderSHAP(probability, data, units) {
@@ -698,7 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const data = {
             age: document.getElementById('age').value,
-            sex: document.getElementById('sex').value,
+            sex: document.getElementById('sex').value === '1' ? 'male' : 'female',
             bmi: document.getElementById('bmi').value,
             creatinine: document.getElementById('creatinine').value,
             glucose: document.getElementById('glucose').value,
